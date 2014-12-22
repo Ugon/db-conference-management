@@ -127,6 +127,7 @@ create table Reservation(
 	ReservationTime datetime not null,
 	Price money not null check(Price >= 0),
 	Paid money not null check(Paid >= 0),
+	Cancelled bit not null
 
 	constraint chk_Paid_Price check(Paid <= Price)
 )
@@ -150,6 +151,3 @@ create table WorkshopReservationDetails(
 
 	constraint pk_WorkshopID_ReservationID primary key (WorkshopInstanceID, ReservationID)
 )
-
-
-
