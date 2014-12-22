@@ -1,0 +1,32 @@
+﻿Procedury
+-Dodawanie nowego klienta
+-Dodawanie nowej firmy
+-Dodawanie uczestnika warsztatu/konferencji 
+-Dodawanie numeru legitymacji uczestnika (opcjonalne - można także zrobić to od razu przy dodawaniu klienta, bez możliwości zmiany)
+-Dodawanie konferencji (podany przynajmniej jeden próg cenowy ?)
+-Dodawanie nowego progu cenowego
+-Dodawanie warsztatu
+-Dodawanie dnia (w sensie konferencji)
+-Dodanie zapłaty za rezerwację
+-Tworzenie rezerwacji (zarówno na dzień jak i warsztat)
+-Faktura dla danego klienta (ona coś o tym mówiła)
+
+Triggery
+-Sprawdzanie czy klient nie zapłacił już całości(przy zapłacie za warsztat/dzień konferencji)
+-Sprawdzanie ilości wolnych miejsc przy rezerwacji
+-Sprawdzanie, czy klient nie rezerwował już warsztatu o danej porze (przy rezerwacji na warsztat)
+-Aktualizacja danych dotyczących płatności przy zmianie rezerwacji
+-Aktualizacja dancych odnośnie ilości miejsc w przypadku anulowania rezerwacji/dodawania nowej rezerwacji 
+
+Widoki
+-Uczestnicy wybranej konferencji
+-Uczestnicy wybranego warsztatu
+-Nie opłacone warsztaty
+-Nie opłacone dni konferencji
+-Wydarzenia, które nie mają uzupełnionych danych odnośnie uczestników
+-Podsumowanie dotyczące zobowiązań klienta/klientów (co zarezerwował, ile miejsc, ile do zapłaty, ile zapłacił)
+-Nadchodzące wydarzenia (konferencje/warsztaty z datą przyszłą)
+-Warsztaty cieszące się największą popularnością
+-Podsumowanie o klientach, którzy wydają najwięcej
+
+
