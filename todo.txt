@@ -1,17 +1,13 @@
 ﻿Procedury
--Dodawanie nowego klienta
--Dodawanie nowej firmy
--Dodawanie uczestnika warsztatu/konferencji 
--Dodawanie numeru legitymacji uczestnika (opcjonalne - można także zrobić to od razu przy dodawaniu klienta, bez możliwości zmiany)
--Dodawanie konferencji (podany przynajmniej jeden próg cenowy ?)
--Dodawanie nowego progu cenowego
--Dodawanie warsztatu
--Dodawanie dnia (w sensie konferencji)
--Dodanie zapłaty za dzień konferencji
--Dodanie zapłaty za warsztat
+-Dodawanie nowego klienta DONE
+-Dodawanie nowej firmy DONE
+-Dodawanie uczestnika warsztatu/konferencji  DONE
+-Dodawanie konferencji DONE
+-Dodawanie nowego progu cenowego DONE
+-Dodawanie warsztatu DONE
+-Dodawanie dnia (w sensie konferencji) DONE
+-Dodanie zapłaty za rezerwację
 -Tworzenie rezerwacji (zarówno na dzień jak i warsztat)
--Anulowanie rezerwacji
--Anulowanie konferencji/warsztatu
 -Faktura dla danego klienta (ona coś o tym mówiła)
 
 Triggery
@@ -30,6 +26,6 @@ Widoki
 -Podsumowanie dotyczące zobowiązań klienta/klientów (co zarezerwował, ile miejsc, ile do zapłaty, ile zapłacił)
 -Nadchodzące wydarzenia (konferencje/warsztaty z datą przyszłą)
 -Warsztaty cieszące się największą popularnością
+-Podsumowanie o klientach, którzy wydają najwięcej
 
-Prawdopodobnie o czymś zapomniałem, część rzeczy dodam jak zobaczę ostateczną postać bazy
 
