@@ -97,13 +97,9 @@ create table WorkshopType(
 	WorkshopTypeID int identity(1,1) primary key,
 	
 	Name varchar(255) not null,
-	StartTime time not null,
-	EndTime time not null,
 	Capacity int not null check(Capacity >= 0),
 	Price money not null check(Price >= 0),
 	Location varchar(255) not null,
-
-	constraint chk_WorkshopType_StartTime_EndTime  check(EndTime > StartTime)
 )
 
 
@@ -113,9 +109,12 @@ create table WorkshopInstance(
 	DayID int not null foreign key references [Day](DayID),
 	WorkshopTypeID int not null foreign key references WorkshopType(WorkshopTypeID),
 	
+	StartTime time not null,
+	EndTime time not null,
 	SlotsLeft int not null check(SlotsLeft >= 0),
 
-	constraint uq_DayID_WorkshopTypeID unique(DayID, WorkshopTypeID)
+	constraint uq_DayID_WorkshopTypeID unique(DayID, WorkshopTypeID),
+	constraint chk_WorkshopType_StartTime_EndTime  check(EndTime > StartTime)
 )
 
 
@@ -127,7 +126,7 @@ create table Reservation(
 	ReservationTime datetime not null,
 	Price money not null check(Price >= 0),
 	Paid money not null check(Paid >= 0),
-	Cancelled bit not null
+	Cancelled bit not null,
 
 	constraint chk_Paid_Price check(Paid <= Price)
 )
