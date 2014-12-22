@@ -10,6 +10,15 @@ create table [Address](
 
 
 
+create table Person(
+	PersonID int identity(1,1) primary key,
+
+	FirstName varchar(255) not null,
+	LastName varchar(255) not null,
+)
+
+
+
 create table Client(
 	ClientID int identity(1,1) primary key,
 	AddressID int foreign key references Address(AddressID) unique not null,
@@ -18,9 +27,21 @@ create table Client(
 	[Password] varchar(255) not null,
 	Mail varchar(255) not null,
 	Phone varchar(255) not null,
+	BankAccount varchar(255) not null unique,
 		
 	PastReservationCount int not null check(PastReservationCount >= 0) default 0,
 	TotalMoneySpent money not null check(TotalMoneySpent >= 0) default 0
+)
+
+
+
+create table PersonClient(
+	ClientID int foreign key references Client(ClientID) not null,
+	PersonID int foreign key references Person(PersonID) not null,
+	
+	IndexNumber varchar(255) unique,
+
+	constraint pk_ClientID_PersonID primary key (ClientID, PersonID)
 )
 
 
@@ -34,37 +55,27 @@ create table Company(
 
 
 
-create table Person(
-	PersonID int identity(1,1) primary key,
-	ClientID int unique foreign key references Client(ClientID),
-	CompanyID int foreign key references Company(CompanyID),
-
-	FirstName varchar(255) not null,
-	LastName varchar(255) not null,
-	IndexNumber int unique,
-	
-	constraint chk_ClientID_or_CompanyID_not_null check(ClientID is not null or CompanyID is not null) 
-)
-
-
-
 create table Conference(
 	ConferenceID int identity(1,1) primary key,
 	AddressID int foreign key references Address(AddressID) unique not null,
 
 	Name varchar(255) not null,
-	
+	Venue varchar(255) not null,
+	DayPrice money not null check(DayPrice > 0),
 	StudentDiscount float not null check(StudentDiscount > =0)
 )
 
 
 
-create table Price(
-	PriceID int identity(1,1) primary key,
+create table EarlyBirdDiscount(
+	EarlyBirdDiscountID int identity(1,1) primary key,
 	ConferenceID int not null foreign key references Conference(ConferenceID),
 
 	StartTime datetime not null,
-	Price money not null check(Price >= 0)
+	EndTime datetime not null,
+	Discount float not null check(Discount > 0),
+
+	constraint chk_EarlyBirdDiscount_StartTime_EndTime check(StartTime < EndTime)
 )
 
 
@@ -74,28 +85,37 @@ create table [Day](
 	ConferenceID int not null foreign key references Conference(ConferenceID),
 
 	[Date] date not null,
-	Capacity int not null check(Capacity>=0),
-	SlotsLeft int not null check(SlotsLeft > =0),
+	Capacity int not null check(Capacity >= 0),
+	SlotsLeft int not null check(SlotsLeft >= 0),
 
 	constraint chk_SlotsLeft_Capacity_Day check(SlotsLeft <= Capacity)
 )
 
 
 
-create table Workshop(
-	WorkshopID int identity(1,1) primary key,
-	DayID int not null foreign key references [Day](DayID),
+create table WorkshopType(
+	WorkshopTypeID int identity(1,1) primary key,
 	
 	Name varchar(255) not null,
 	StartTime time not null,
 	EndTime time not null,
-	Capacity int not null check(Capacity>=0),
-	SlotsLeft int not null check(SlotsLeft > =0),
+	Capacity int not null check(Capacity >= 0),
 	Price money not null check(Price >= 0),
 	Location varchar(255) not null,
 
-	constraint chk_SlotsLeft_Capacity_Workshop check(SlotsLeft <= Capacity),
-	constraint chk_StartTime_EndTime  check(EndTime > StartTime)
+	constraint chk_WorkshopType_StartTime_EndTime  check(EndTime > StartTime)
+)
+
+
+
+create table WorkshopInstance(
+	WorkshopInstanceID int identity(1,1) primary key,
+	DayID int not null foreign key references [Day](DayID),
+	WorkshopTypeID int not null foreign key references WorkshopType(WorkshopTypeID),
+	
+	SlotsLeft int not null check(SlotsLeft >= 0),
+
+	constraint uq_DayID_WorkshopTypeID unique(DayID, WorkshopTypeID)
 )
 
 
@@ -124,11 +144,11 @@ create table DayReservationDetails(
 
 
 create table WorkshopReservationDetails(
-	WorkshopID int not null foreign key references Workshop(WorkshopID),
+	WorkshopInstanceID int not null foreign key references WorkshopInstance(WorkshopInstanceID),
 	ReservationID int not null foreign key references Reservation(ReservationID),
 	PersonID int foreign key references Person(PersonID),
 
-	constraint pk_WorkshopID_ReservationID primary key (WorkshopID, ReservationID)
+	constraint pk_WorkshopID_ReservationID primary key (WorkshopInstanceID, ReservationID)
 )
 
 

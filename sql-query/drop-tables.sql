@@ -1,14 +1,15 @@
 use pachuta_a
 
-drop table [Address]
 drop table DayReservationDetails
 drop table WorkshopReservationDetails
 drop table Reservation
+drop table PersonClient
 drop table Person
 drop table Company
 drop table Client
-drop table Workshop
+drop table WorkshopInstance
+drop table WorkshopType
 drop table [Day]
-drop table Price
+drop table EarlyBirdDiscount
 drop table Conference
-
+drop table [Address]
