@@ -1,16 +1,32 @@
 use pachuta_a
-go 
-
-create trigger calculateDaySlotsLeft on Reservation after insert, update as
-declare @Count int
-select @Count = count(*) from [Day] as d inner join DayReservaionDetails as drd on d.DayID = drd.DayID inner join Reservation as r on drd.ReservationID = r.ReservaitionID where r.Cancelled = 0
-insert into [Day](SlotsLeft) values (@Count)
 go
 
-create trigger calculateWorkshopSlotsLeft on Reservation after insert, update as
+if object_id('calculateDaySlotsFilled') is not null
+drop trigger calculateDaySlotsFilled
+go
+
+if object_id('calculateWorkshopSlotsFilled') is not null
+drop trigger calculateWorkshopSlotsFilled
+go
+
+if object_id('checkSlotsCapacityInWorkshopInstance') is not null
+drop trigger checkSlotsCapacityInWorkshopInstance
+go
+
+if object_id('checkThatClientWorkchopReserwationsDoNotOverlap') is not null
+drop trigger checkThatClientWorkchopReserwationsDoNotOverlap
+go
+
+create trigger calculateDaySlotsFilled on Reservation after insert, update as
 declare @Count int
-select @count = count(*) from workshopInstance as w inner join WorkshopReservationDetails as wrd on i.WorkshoInstanceID = wrd.WorkshopInstanceID inner join Reservation as r on wrd.ReservationID = r.ReservationID where cancelled = 0
-insert into WorkshopInstance(SlotsLeft) values (@Count)
+select @Count = count(*) from [Day] as d inner join DayReservaionDetails as drd on d.DayID = drd.DayID inner join Reservation as r on drd.ReservationID = r.ReservaitionID where r.Cancelled = 0
+insert into [Day](SlotsFilled) values (@Count)
+go
+
+create trigger calculateWorkshopSlotsFilled on Reservation after insert, update as
+declare @Count int
+select @count = count(*) from workshopInstance as wi inner join WorkshopReservationDetails as wrd on wi.WorkshopInstanceID = wrd.WorkshopInstanceID inner join Reservation as r on wrd.ReservationID = r.ReservationID where cancelled = 0
+insert into WorkshopInstance(SlotsFilled) values (@Count)
 go
 
 create trigger checkSlotsCapacityInWorkshopInstance on WorkshopInstance after insert, update as
