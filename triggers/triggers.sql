@@ -13,8 +13,8 @@ if object_id('checkSlotsCapacityInWorkshopInstance') is not null
 drop trigger checkSlotsCapacityInWorkshopInstance
 go
 
-if object_id('checkThatClientWorkchopReserwationsDoNotOverlap') is not null
-drop trigger checkThatClientWorkchopReserwationsDoNotOverlap
+if object_id('checkThatClientWorkchopReservationsDoNotOverlap') is not null
+drop trigger checkThatClientWorkchopReservationsDoNotOverlap
 go
 
 create trigger calculateDaySlotsFilled on Reservation after insert, update as
@@ -39,7 +39,7 @@ return
 end
 go
 
-create trigger checkThatClientWorkchopReserwationsDoNotOverlap on WorkshopReservationDetails after insert, update as
+create trigger checkThatClientWorkchopReservationsDoNotOverlap on WorkshopReservationDetails after insert, update as
 if exists (select * from
 (select wrd.WorkshopInstanceID as wiID, wi.StartTime as st, wi.EndTime as et from WorkshopReservationDetails as wrd inner join reservation as r on r.ReservationID = wrd.ReservationID
 	inner join inserted as i on i.ReservationID = r.ReservationID inner join WorkshopInstance as wi on wi.WorkshopInstanceID = wrd.WorkshopInstanceID) as t1
