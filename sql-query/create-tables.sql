@@ -30,7 +30,7 @@ create table Client(
 	[Password] varchar(50) not null,
 	Mail varchar(50) unique not null check (Mail LIKE '%_@_%._%'),
 	Phone varchar(9) unique not null check (Phone LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
-	BankAccount varchar(26) unique not null unique,
+	BankAccount varchar(26) unique not null,
 		
 	PastReservationCount int not null check(PastReservationCount >= 0) default 0,
 	TotalMoneySpent money not null check(TotalMoneySpent >= 0) default 0
