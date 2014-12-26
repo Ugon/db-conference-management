@@ -1,4 +1,35 @@
 use pachuta_a
+go
+if object_id('WorkshopReservationDetails') is not null drop table WorkshopReservationDetails
+go
+if object_id('DayReservationDetails') is not null drop table DayReservationDetails
+go
+if object_id('WorkshopReservation') is not null drop table WorkshopReservation
+go
+if object_id('DayReservation') is not null drop table DayReservation
+go
+if object_id('Reservation') is not null drop table Reservation
+go
+if object_id('PersonClient') is not null drop table PersonClient
+go
+if object_id('Person') is not null drop table Person
+go
+if object_id('Company') is not null drop table Company
+go
+if object_id('Client') is not null drop table Client
+go
+if object_id('WorkshopInstance') is not null drop table WorkshopInstance
+go
+if object_id('WorkshopType') is not null drop table WorkshopType
+go
+if object_id('[Day]') is not null drop table [Day]
+go
+if object_id('EarlyBirdDiscount') is not null drop table EarlyBirdDiscount
+go
+if object_id('Conference') is not null drop table Conference
+go
+if object_id('[Address]') is not null drop table [Address]
+go
 
 create table [Address](
 	AddressID int identity(1,1) primary key,
@@ -18,6 +49,7 @@ create table Person(
 
 	FirstName varchar(50) not null,
 	LastName varchar(50) not null,
+	Mail varchar(50) unique not null check (Mail LIKE '%_@_%._%')
 )
 
 
@@ -28,11 +60,8 @@ create table Client(
 
 	[Login] varchar(50) unique not null,
 	[Password] varchar(50) not null,
-	Mail varchar(50) unique not null check (Mail LIKE '%_@_%._%'),
 	Phone varchar(11) unique not null check (Phone LIKE '[0-9][0-9][0-9] [0-9][0-9][0-9] [0-9][0-9][0-9]'),
-	BankAccount varchar(32) unique not null 
-		check (BankAccount LIKE '[0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9]'),
-		
+	BankAccount varchar(32) unique not null check (BankAccount LIKE '[0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9]'),
 	PastReservationCount int not null check(PastReservationCount >= 0) default 0,
 	TotalMoneySpent money not null check(TotalMoneySpent >= 0) default 0
 )
@@ -54,7 +83,8 @@ create table Company(
 	CompanyID int identity(1,1) primary key,
 	ClientID int unique not null foreign key references Client(ClientID),
 	
-	CompanyName varchar(50) unique not null
+	CompanyName varchar(50) unique not null,
+	Mail varchar(50) unique not null check (Mail LIKE '%_@_%._%')
 )
 
 
@@ -103,7 +133,7 @@ create table WorkshopType(
 	
 	Name varchar(50) unique not null,
 	Capacity int not null check(Capacity >= 0),
-	Price money not null check(Price >= 0),
+	Price money not null check(Price >= 0)
 )
 
 
@@ -137,22 +167,46 @@ create table Reservation(
 
 
 
-create table DayReservationDetails(
+create table DayReservation(
+	DayReservationID int identity(1,1) primary key,
 	DayID int not null foreign key references [Day](DayID),
 	ReservationID int not null foreign key references Reservation(ReservationID),
-	PersonID int foreign key references Person(PersonID),
 
-	constraint pk_DayID_ReservationID primary key (DayID, ReservationID),
-	constraint uq_DayID_PersonID unique (DayID, PersonID)
+	NumberOfParticipants int not null check(NumberOfParticipants > 0),
+	NumberOfStudents int not null default 0 check(NumberOfStudents >= 0),
+
+	constraint uq_DayID_ReservationID unique (DayID, ReservationID),
+	constraint chk_DayReservation_Participants_Students check (NumberOfParticipants >= NumberOfStudents)
+)
+
+
+
+create table WorkshopReservation(
+	WorkshopReservationID int identity(1,1) primary key,
+	WorkshopInstanceID int not null foreign key references WorkshopInstance(WorkshopInstanceID),
+	DayReservationID int not null foreign key references DayReservation(DayReservationID),
+
+	NumberOfParticipants int not null check(NumberOfParticipants > 0),
+	NumberOfStudents int not null default 0 check(NumberOfStudents >= 0),
+
+	constraint uq_WorkshopInstanceID_DayReservationID unique (WorkshopInstanceID, DayReservationID),
+	constraint chk_WorkshopReservation_Participants_Students check (NumberOfParticipants >= NumberOfStudents)
+)
+
+
+
+create table DayReservationDetails(
+	DayReservationID int not null foreign key references DayReservation(DayReservationID),
+	PersonID int not null foreign key references Person(PersonID),
+
+	constraint pk_DayReservationDetails primary key(DayReservationID, PersonID)
 )
 
 
 
 create table WorkshopReservationDetails(
-	WorkshopInstanceID int not null foreign key references WorkshopInstance(WorkshopInstanceID),
-	ReservationID int not null foreign key references Reservation(ReservationID),
-	PersonID int foreign key references Person(PersonID),
+	WorkshopReservationID int not null foreign key references WorkshopReservation(WorkshopReservationID),
+	PersonID int not null foreign key references Person(PersonID),
 
-	constraint pk_WorkshopID_ReservationID primary key (WorkshopInstanceID, ReservationID),
-	constraint uq_WorkshopInstanceID_PersonID unique (WorkshopInstanceID, PersonID)
+	constraint pk_WorkshopReservationDetails primary key(WorkshopReservationID, PersonID),
 )
