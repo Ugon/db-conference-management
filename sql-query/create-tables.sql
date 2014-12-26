@@ -4,7 +4,7 @@ create table [Address](
 	AddressID int identity(1,1) primary key,
 
 	Street varchar(50) not null,
-	PostalCode varchar(7) not null check(PostalCode LIKE '[0-9][0-9]-[0-9][0-9][0-9]'),
+	PostalCode varchar(6) not null check(PostalCode LIKE '[0-9][0-9]-[0-9][0-9][0-9]'),
 	City varchar(50) not null,
 	Country varchar(50) not null
 
@@ -102,7 +102,6 @@ create table WorkshopType(
 	
 	Capacity int not null check(Capacity >= 0),
 	Price money not null check(Price >= 0),
-	Location varchar(50) not null,
 )
 
 
@@ -114,7 +113,7 @@ create table WorkshopInstance(
 	
 	StartTime time not null,
 	EndTime time not null,
-	Location varchar(255) not null,
+	Location varchar(50) not null,
 	SlotsFilled int not null check(SlotsFilled >= 0) default 0,
 
 	constraint chk_WorkshopType_StartTime_EndTime  check(EndTime > StartTime)
