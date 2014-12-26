@@ -2,10 +2,13 @@ use pachuta_a
 
 create table [Address](
 	AddressID int identity(1,1) primary key,
+
 	Street varchar(50) not null,
 	PostalCode varchar(7) not null check(PostalCode LIKE '[0-9][0-9]-[0-9][0-9][0-9]'),
 	City varchar(50) not null,
 	Country varchar(50) not null
+
+	constraint chk_address_duplication unique(Street, PostalCode, City, Country)
 )
 
 
@@ -21,13 +24,13 @@ create table Person(
 
 create table Client(
 	ClientID int identity(1,1) primary key,
-	AddressID int foreign key references Address(AddressID) unique not null,
+	AddressID int foreign key references Address(AddressID) not null,
 
 	[Login] varchar(50) unique not null,
 	[Password] varchar(50) not null,
-	Mail varchar(50) not null check (Mail LIKE '%_@_%._%'),
-	Phone varchar(9) not null check (Phone LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
-	BankAccount varchar(26) not null unique,
+	Mail varchar(50) unique not null check (Mail LIKE '%_@_%._%'),
+	Phone varchar(9) unique not null check (Phone LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
+	BankAccount varchar(26) unique not null unique,
 		
 	PastReservationCount int not null check(PastReservationCount >= 0) default 0,
 	TotalMoneySpent money not null check(TotalMoneySpent >= 0) default 0
@@ -39,7 +42,7 @@ create table PersonClient(
 	ClientID int foreign key references Client(ClientID) not null,
 	PersonID int foreign key references Person(PersonID) not null,
 	
-	IndexNumber varchar(6) unique check (IndexNumber LIKE '[0-9][0-9][0-9][0-9][0-9][0-9]'),
+	IndexNumber varchar(6) unique default null check (IndexNumber LIKE '[0-9][0-9][0-9][0-9][0-9][0-9]'),
 
 	constraint pk_ClientID_PersonID primary key (ClientID, PersonID)
 )
@@ -57,12 +60,13 @@ create table Company(
 
 create table Conference(
 	ConferenceID int identity(1,1) primary key,
-	AddressID int foreign key references Address(AddressID) unique not null,
+	AddressID int foreign key references Address(AddressID) not null,
 
-	Name varchar(50) not null,
+	Name varchar(50) unique not null,
 	Venue varchar(50) not null,
-	DayPrice money not null check(DayPrice > 0),
-	StudentDiscount float not null check(StudentDiscount > =0)
+
+	DayPrice money not null check(DayPrice >= 0),
+	StudentDiscount float not null check(StudentDiscount >= 0 and StudentDiscount <= 1) default 0
 )
 
 
@@ -73,7 +77,7 @@ create table EarlyBirdDiscount(
 
 	StartTime datetime not null,
 	EndTime datetime not null,
-	Discount float not null check(Discount > 0),
+	Discount float not null check(Discount > 0 and Discount <= 1),
 
 	constraint chk_EarlyBirdDiscount_StartTime_EndTime check(StartTime < EndTime)
 )
@@ -86,9 +90,9 @@ create table [Day](
 
 	[Date] date not null,
 	Capacity int not null check(Capacity >= 0),
-	SlotsLeft int not null check(SlotsLeft >= 0),
+	SlotsFilled int not null check(SlotsFilled >= 0) default 0,
 
-	constraint chk_SlotsLeft_Capacity_Day check(SlotsLeft <= Capacity)
+	constraint chk_SlotsFilled_Capacity_Day check(SlotsFilled <= Capacity)
 )
 
 
@@ -96,7 +100,6 @@ create table [Day](
 create table WorkshopType(
 	WorkshopTypeID int identity(1,1) primary key,
 	
-	Name varchar(50) not null,
 	Capacity int not null check(Capacity >= 0),
 	Price money not null check(Price >= 0),
 	Location varchar(50) not null,
@@ -111,9 +114,9 @@ create table WorkshopInstance(
 	
 	StartTime time not null,
 	EndTime time not null,
-	SlotsLeft int not null check(SlotsLeft >= 0),
+	Location varchar(255) not null,
+	SlotsFilled int not null check(SlotsFilled >= 0) default 0,
 
-	constraint uq_DayID_WorkshopTypeID unique(DayID, WorkshopTypeID),
 	constraint chk_WorkshopType_StartTime_EndTime  check(EndTime > StartTime)
 )
 
@@ -123,10 +126,10 @@ create table Reservation(
 	ReservationID int identity(1,1) primary key,
 	ClientID int not null foreign key references Client(ClientID),
 
-	ReservationTime datetime not null,
+	ReservationTime datetime not null default GETDATE(),
 	Price money not null check(Price >= 0),
-	Paid money not null check(Paid >= 0),
-	Cancelled bit not null,
+	Paid money not null check(Paid >= 0) default 0,
+	Cancelled bit not null default 0,
 
 	constraint chk_Paid_Price check(Paid <= Price)
 )
@@ -138,7 +141,8 @@ create table DayReservationDetails(
 	ReservationID int not null foreign key references Reservation(ReservationID),
 	PersonID int foreign key references Person(PersonID),
 
-	constraint pk_DayID_ReservationID primary key (DayID, ReservationID)
+	constraint pk_DayID_ReservationID primary key (DayID, ReservationID),
+	constraint uq_DayID_PersonID unique (DayID, PersonID)
 )
 
 
@@ -148,5 +152,6 @@ create table WorkshopReservationDetails(
 	ReservationID int not null foreign key references Reservation(ReservationID),
 	PersonID int foreign key references Person(PersonID),
 
-	constraint pk_WorkshopID_ReservationID primary key (WorkshopInstanceID, ReservationID)
+	constraint pk_WorkshopID_ReservationID primary key (WorkshopInstanceID, ReservationID),
+	constraint uq_WorkshopInstanceID_PersonID unique (WorkshopInstanceID, PersonID)
 )
