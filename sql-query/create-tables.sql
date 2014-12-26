@@ -49,6 +49,7 @@ create table Person(
 
 	FirstName varchar(50) not null,
 	LastName varchar(50) not null,
+	IndexNumber varchar(6) unique default null check (IndexNumber LIKE '[0-9][0-9][0-9][0-9][0-9][0-9]'),
 	Mail varchar(50) unique not null check (Mail LIKE '%_@_%._%')
 )
 
@@ -71,8 +72,6 @@ create table Client(
 create table PersonClient(
 	ClientID int foreign key references Client(ClientID) not null,
 	PersonID int foreign key references Person(PersonID) not null,
-	
-	IndexNumber varchar(6) unique default null check (IndexNumber LIKE '[0-9][0-9][0-9][0-9][0-9][0-9]'),
 
 	constraint pk_ClientID_PersonID primary key (ClientID, PersonID)
 )
@@ -123,7 +122,8 @@ create table [Day](
 	Capacity int not null check(Capacity >= 0),
 	SlotsFilled int not null check(SlotsFilled >= 0) default 0,
 
-	constraint chk_SlotsFilled_Capacity_Day check(SlotsFilled <= Capacity)
+	constraint chk_SlotsFilled_Capacity_Day check(SlotsFilled <= Capacity),
+	constraint uq_ConferenceID_Date unique(ConferenceID, [Date])
 )
 
 
@@ -173,10 +173,10 @@ create table DayReservation(
 	ReservationID int not null foreign key references Reservation(ReservationID),
 
 	NumberOfParticipants int not null check(NumberOfParticipants > 0),
-	NumberOfStudents int not null default 0 check(NumberOfStudents >= 0),
+	NumberOfStudentDiscounts int not null default 0 check(NumberOfStudentDiscounts >= 0),
 
 	constraint uq_DayID_ReservationID unique (DayID, ReservationID),
-	constraint chk_DayReservation_Participants_Students check (NumberOfParticipants >= NumberOfStudents)
+	constraint chk_DayReservation_Participants_Students check (NumberOfParticipants >= NumberOfStudentDiscounts)
 )
 
 
@@ -187,26 +187,29 @@ create table WorkshopReservation(
 	DayReservationID int not null foreign key references DayReservation(DayReservationID),
 
 	NumberOfParticipants int not null check(NumberOfParticipants > 0),
-	NumberOfStudents int not null default 0 check(NumberOfStudents >= 0),
+	NumberOfStudentDiscounts int not null default 0 check(NumberOfStudentDiscounts >= 0),
 
 	constraint uq_WorkshopInstanceID_DayReservationID unique (WorkshopInstanceID, DayReservationID),
-	constraint chk_WorkshopReservation_Participants_Students check (NumberOfParticipants >= NumberOfStudents)
+	constraint chk_WorkshopReservation_Participants_Students check (NumberOfParticipants >= NumberOfStudentDiscounts)
 )
 
 
 
 create table DayReservationDetails(
+	DayReservationDetailsID int identity(1,1) primary key,
 	DayReservationID int not null foreign key references DayReservation(DayReservationID),
 	PersonID int not null foreign key references Person(PersonID),
 
-	constraint pk_DayReservationDetails primary key(DayReservationID, PersonID)
+	Student bit not null default 0,
+
+	constraint uq_DayReservationDetails unique (DayReservationID, PersonID)
 )
 
 
 
 create table WorkshopReservationDetails(
+	DayReservationDetailsID int not null foreign key references DayReservationDetails(DayReservationDetailsID),
 	WorkshopReservationID int not null foreign key references WorkshopReservation(WorkshopReservationID),
-	PersonID int not null foreign key references Person(PersonID),
 
-	constraint pk_WorkshopReservationDetails primary key(WorkshopReservationID, PersonID),
+	constraint pk_WorkshopReservationDetails primary key(DayReservationDetailsID, WorkshopReservationID),
 )
