@@ -2,10 +2,10 @@ use pachuta_a
 
 create table [Address](
 	AddressID int identity(1,1) primary key,
-	Street varchar(255) not null,
-	PostalCode varchar(255) not null,
-	City varchar(255) not null,
-	Country varchar(255) not null
+	Street varchar(50) not null,
+	PostalCode varchar(7) not null check(PostalCode LIKE '[0-9][0-9]-[0-9][0-9][0-9]'),
+	City varchar(50) not null,
+	Country varchar(50) not null
 )
 
 
@@ -13,8 +13,8 @@ create table [Address](
 create table Person(
 	PersonID int identity(1,1) primary key,
 
-	FirstName varchar(255) not null,
-	LastName varchar(255) not null,
+	FirstName varchar(50) not null,
+	LastName varchar(50) not null,
 )
 
 
@@ -23,11 +23,11 @@ create table Client(
 	ClientID int identity(1,1) primary key,
 	AddressID int foreign key references Address(AddressID) unique not null,
 
-	[Login] varchar(255) unique not null,
-	[Password] varchar(255) not null,
-	Mail varchar(255) not null,
-	Phone varchar(255) not null,
-	BankAccount varchar(255) not null unique,
+	[Login] varchar(50) unique not null,
+	[Password] varchar(50) not null,
+	Mail varchar(50) not null check (Mail LIKE '%_@_%._%'),
+	Phone varchar(9) not null check (Phone LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
+	BankAccount varchar(26) not null unique,
 		
 	PastReservationCount int not null check(PastReservationCount >= 0) default 0,
 	TotalMoneySpent money not null check(TotalMoneySpent >= 0) default 0
@@ -39,7 +39,7 @@ create table PersonClient(
 	ClientID int foreign key references Client(ClientID) not null,
 	PersonID int foreign key references Person(PersonID) not null,
 	
-	IndexNumber varchar(255) unique,
+	IndexNumber varchar(6) unique check (IndexNumber LIKE '[0-9][0-9][0-9][0-9][0-9][0-9]'),
 
 	constraint pk_ClientID_PersonID primary key (ClientID, PersonID)
 )
@@ -50,7 +50,7 @@ create table Company(
 	CompanyID int identity(1,1) primary key,
 	ClientID int unique not null foreign key references Client(ClientID),
 	
-	CompanyName varchar(255) unique not null
+	CompanyName varchar(50) unique not null
 )
 
 
@@ -59,8 +59,8 @@ create table Conference(
 	ConferenceID int identity(1,1) primary key,
 	AddressID int foreign key references Address(AddressID) unique not null,
 
-	Name varchar(255) not null,
-	Venue varchar(255) not null,
+	Name varchar(50) not null,
+	Venue varchar(50) not null,
 	DayPrice money not null check(DayPrice > 0),
 	StudentDiscount float not null check(StudentDiscount > =0)
 )
@@ -96,10 +96,10 @@ create table [Day](
 create table WorkshopType(
 	WorkshopTypeID int identity(1,1) primary key,
 	
-	Name varchar(255) not null,
+	Name varchar(50) not null,
 	Capacity int not null check(Capacity >= 0),
 	Price money not null check(Price >= 0),
-	Location varchar(255) not null,
+	Location varchar(50) not null,
 )
 
 
