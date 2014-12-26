@@ -1,3 +1,5 @@
+use pachuta_a
+
 IF OBJECT_ID('getConferenceId') IS NOT NULL
 DROP FUNCTION getConferenceId
 GO
