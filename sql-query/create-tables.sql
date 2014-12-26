@@ -101,6 +101,7 @@ create table [Day](
 create table WorkshopType(
 	WorkshopTypeID int identity(1,1) primary key,
 	
+	Name varchar(50) unique not null,
 	Capacity int not null check(Capacity >= 0),
 	Price money not null check(Price >= 0),
 )
