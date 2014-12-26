@@ -29,8 +29,9 @@ create table Client(
 	[Login] varchar(50) unique not null,
 	[Password] varchar(50) not null,
 	Mail varchar(50) unique not null check (Mail LIKE '%_@_%._%'),
-	Phone varchar(9) unique not null check (Phone LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
-	BankAccount varchar(26) unique not null,
+	Phone varchar(11) unique not null check (Phone LIKE '[0-9][0-9][0-9] [0-9][0-9][0-9] [0-9][0-9][0-9]'),
+	BankAccount varchar(32) unique not null 
+		check (BankAccount LIKE '[0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9]'),
 		
 	PastReservationCount int not null check(PastReservationCount >= 0) default 0,
 	TotalMoneySpent money not null check(TotalMoneySpent >= 0) default 0
