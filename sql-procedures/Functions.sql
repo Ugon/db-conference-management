@@ -10,7 +10,7 @@ GO
 
 CREATE FUNCTION getConferenceId
 (
-	@Name varchar(255)
+	@Name varchar(50)
 )
 RETURNS int
 AS
@@ -24,7 +24,7 @@ GO
 
 CREATE FUNCTION getConferenceDayId
 (
-	@ConferenceName varchar(255),
+	@ConferenceName varchar(50),
 	@Date date
 )
 RETURNS int
