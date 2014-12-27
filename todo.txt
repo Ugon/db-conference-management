@@ -18,7 +18,7 @@ Triggery
 -Aktualizacja danych dotyczących płatności przy zmianie rezerwacji DONE - zmian byc nie moze
 -Aktualizacja dancych odnośnie ilości miejsc w przypadku anulowania rezerwacji/dodawania nowej rezerwacji DONE
 -automatyczne wypelnianie czasu reserwacji przy dodawaniu reserwacji DONE na defaulcie
--automatyczne liczenie wydanego hajsu przez klienta
+-automatyczne liczenie wydanego hajsu przez klienta DONE
 
 Widoki
 -Uczestnicy wybranej konferencji

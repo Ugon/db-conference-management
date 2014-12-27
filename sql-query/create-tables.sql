@@ -70,8 +70,8 @@ create table Client(
 
 
 create table PersonClient(
-	ClientID int foreign key references Client(ClientID) not null,
-	PersonID int foreign key references Person(PersonID) not null,
+	ClientID int foreign key references Client(ClientID) not null unique,
+	PersonID int foreign key references Person(PersonID) not null unique,
 
 	constraint pk_ClientID_PersonID primary key (ClientID, PersonID)
 )
@@ -148,7 +148,8 @@ create table WorkshopInstance(
 	Location varchar(50) not null,
 	SlotsFilled int not null check(SlotsFilled >= 0) default 0,
 
-	constraint chk_WorkshopType_StartTime_EndTime  check(EndTime > StartTime)
+	constraint chk_WorkshopType_StartTime_EndTime check(EndTime > StartTime),
+	constraint uq_WorkshopTypeID_DayID_StartTime unique(DayID, WorkshopTypeID, StartTime)
 )
 
 
