@@ -10,11 +10,13 @@
 -Tworzenie rezerwacji (zarówno na dzień jak i warsztat) DONE
 
 Triggery
--Sprawdzanie czy klient nie zapłacił już całości(przy zapłacie za warsztat/dzień konferencji)
--Sprawdzanie ilości wolnych miejsc przy rezerwacji
--Sprawdzanie, czy klient nie rezerwował już warsztatu o danej porze (przy rezerwacji na warsztat)
--Aktualizacja danych dotyczących płatności przy zmianie rezerwacji
--Aktualizacja dancych odnośnie ilości miejsc w przypadku anulowania rezerwacji/dodawania nowej rezerwacji 
+-Sprawdzanie czy klient nie zapłacił już całości(przy zapłacie za warsztat/dzień konferencji) DONE - constraint paid <= price
+-Sprawdzanie ilości wolnych miejsc przy rezerwacji DONE - obliczanie slotsfilled + constraint slotsfilled <= capacity
+-Sprawdzanie, czy klient nie rezerwował już warsztatu o danej porze (przy rezerwacji na warsztat) DONE
+-Aktualizacja danych dotyczących płatności przy zmianie rezerwacji DONE - zmian byc nie moze
+-Aktualizacja dancych odnośnie ilości miejsc w przypadku anulowania rezerwacji/dodawania nowej rezerwacji DONE
+-automatyczne wypelnianie czasu reserwacji przy dodawaniu reserwacji DONE na defaulcie
+-automatyczne liczenie wydanego hajsu przez klienta
 
 Widoki
 -Uczestnicy wybranej konferencji
