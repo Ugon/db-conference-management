@@ -7,8 +7,7 @@
 -Dodawanie warsztatu DONE
 -Dodawanie dnia (w sensie konferencji) DONE
 -Dodanie zapłaty za rezerwację
--Tworzenie rezerwacji (zarówno na dzień jak i warsztat)
--Faktura dla danego klienta (ona coś o tym mówiła)
+-Tworzenie rezerwacji (zarówno na dzień jak i warsztat) DONE
 
 Triggery
 -Sprawdzanie czy klient nie zapłacił już całości(przy zapłacie za warsztat/dzień konferencji)

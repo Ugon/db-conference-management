@@ -57,11 +57,11 @@ IF OBJECT_ID('addWorkshopReservationDetails') IS NOT NULL
 DROP PROCEDURE addWorkshopReservationDetails
 GO
 
-IF OBJECT_ID('removeWorkshopReservationDetail') IS NOT NULL
+IF OBJECT_ID('removeWorkshopReservationDetails') IS NOT NULL
 DROP PROCEDURE removeWorkshopReservationDetail
 GO
 
-IF OBJECT_ID('removeDayReservationDetail') IS NOT NULL
+IF OBJECT_ID('removeDayReservationDetails') IS NOT NULL
 DROP PROCEDURE removeDayReservationDetail
 GO
 
@@ -169,8 +169,7 @@ BEGIN
 	
 	--tworzenie rekordu Person
 	exec insertPersonIfNotExists @FirstName, @LastName, @Mail, @IndexNumber
-	set @personId = (select PersonId from Person where FirstName = @FirstName
-		and LastName = @LastName and Mail = @Mail)
+	set @personId = (select PersonId from Person where Mail = @Mail)
 	
 	--tworzenie rekordu Address
 	exec insertIfNotExistsAddress @Country, @City, @Street, @PostalCode
@@ -186,7 +185,7 @@ BEGIN
 	set @clientId = SCOPE_IDENTITY();
 	
 	--tworzenie rekordu PersonClient
-	insert into PersonClient(ClientID,PersonID,) 
+	insert into PersonClient(ClientID,PersonID)
 		values (@clientId,@personId)
 END
 GO
@@ -306,8 +305,7 @@ BEGIN
 	declare @workshopReservationId int;
 	
 	exec insertPersonIfNotExists @FirstName, @LastName, @Mail, @IndexNumber
-	set @personId = (select PersonId from Person where FirstName = @FirstName
-		and LastName = @LastName and Mail = @Mail)
+	set @personId = (select PersonId from Person where Mail = @Mail)
 		
 	set @dayId = dbo.getConferenceDayId(@conferenceName, @date);
 		
@@ -357,17 +355,13 @@ BEGIN
 		
 	exec insertPersonIfNotExists @FirstName, @LastName, @Mail, @IndexNumber
 	
-	set @personId = (select PersonId from Person where FirstName = @FirstName 
-		and LastName = @LastName and Mail = @Mail)
+	set @personId = (select PersonId from Person where Mail = @Mail)
 	
 	if @IndexNumber is null
-	begin
 		set @student = 0;
-	end
 	else 
-	begin
 		set @student = 1;
-	end
+
 	
 	insert into DayReservationDetails(DayReservationID, PersonID, Student)
 		values(@dayReservationId, @personId, @student)
@@ -433,10 +427,66 @@ BEGIN
 		where DayID = @dayId and StartTime = @startTime 
 		and WorkshopTypeID = (select WorkshopTypeID from WorkshopType where Name = @workshopName))
 		
-	set @dayReservationId = (select DayReservationId from DayReservation where DayID = @dayId)
+	set @dayReservationId = (select DayReservationId from DayReservation where DayID = @dayId
+		and ReservationID = @reservationId)
 		
 	insert into WorkshopReservation(WorkshopInstanceID, DayReservationID, 
 		NumberOfParticipants, NumberOfStudentDiscounts)
 		values(@workshopInstanceId, @dayReservationId ,@NumberOfParticipants, @NumberOfStudentDiscounts)
+END
+GO
+
+CREATE PROCEDURE removeWorkshopReservationDetails
+	@reservationId int,
+	@conferenceName varchar(50),
+	@workshopName varchar(50),
+	@date date,
+	@Mail varchar(50)
+AS
+BEGIN
+	declare @dayReservationId int;
+	declare @personId int;
+	declare @dayReservationDetailsId int;
+	declare @workshopInstanceId int;
+	
+	set @dayReservationId = (select DayReservationId from DayReservation 
+		where DayID = dbo.getConferenceDayId(@conferenceName, @date) and ReservationID = @reservationId)
+	
+	set @personId = (select PersonId from Person where Mail = @Mail)
+		
+	set @dayReservationDetailsId = (select DayReservationDetailsId from DayReservationDetails
+		where PersonID = @personId and DayReservationID = @dayReservationId)
+		
+	set @workshopInstanceId = (select WorkshopInstanceId from WorkshopInstance
+		where DayID = dbo.getConferenceDayId(@conferenceName, @date) 
+		and WorkshopTypeID = (select WorkshopTypeID from WorkshopType where Name = @workshopName))
+		
+	delete from WorkshopReservationDetails 
+		where DayReservationDetailsID = @dayReservationDetailsId 
+		and WorkshopReservationID = (select WorkshopReservationID from WorkshopReservation
+		where WorkshopInstanceID = @workshopInstanceId and DayReservationID = @dayReservationId)
+		
+		
+END
+GO
+
+CREATE PROCEDURE removeDayReservationDetails
+	@reservationId int,
+	@conferenceName varchar(50),
+	@date date,
+	@Mail varchar(50)
+AS
+BEGIN
+	declare @dayReservationId int;
+	declare @personId int;
+	
+	set @dayReservationId = (select DayReservationId from DayReservation 
+		where DayID = dbo.getConferenceDayId(@conferenceName, @date) and ReservationID = @reservationId)
+	
+	set @personId = (select PersonId from Person where Mail = @Mail)
+		
+	delete from DayReservationDetails
+		where PersonID = @personId and DayReservationID = @dayReservationId
+	
 END
 GO
