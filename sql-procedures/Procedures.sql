@@ -1,73 +1,5 @@
 use pachuta_a
 
-IF OBJECT_ID('addEarlyBirdDiscount') IS NOT NULL 
-DROP PROC addEarlyBirdDiscount;
-GO
-
-IF OBJECT_ID('addClientCompany') IS NOT NULL 
-DROP PROC addClientCompany;
-GO
-
-IF OBJECT_ID('addClientPerson') IS NOT NULL 
-DROP PROC addClientPerson;
-GO
-
-IF OBJECT_ID('addConference') IS NOT NULL 
-DROP PROC addConference;
-GO
-
-IF OBJECT_ID('addConferenceDay') IS NOT NULL 
-DROP PROC addConferenceDay;
-GO
-
-IF OBJECT_ID('addWorkshop') IS NOT NULL
-DROP PROC addWorkshop;
-GO
-
-IF OBJECT_ID('insertIfNotExistsAddress') IS NOT NULL 
-DROP PROC insertIfNotExistsAddress;
-GO
-
-IF OBJECT_ID('addWorkshopInstance') IS NOT NULL 
-DROP PROC addWorkshopInstance;
-GO
-
-IF OBJECT_ID('addWorkshopType') IS NOT NULL 
-DROP PROC addWorkshopType;
-GO
-
-IF OBJECT_ID('addDayReservation') IS NOT NULL
-DROP PROCEDURE addDayReservation
-GO
-
-IF OBJECT_ID('addWorkshopReservation') IS NOT NULL
-DROP PROCEDURE addWorkshopReservation
-GO
-
-IF OBJECT_ID('addNewReservation') IS NOT NULL
-DROP PROCEDURE addNewReservation
-GO
-
-IF OBJECT_ID('insertPersonIfNotExists') IS NOT NULL
-DROP PROCEDURE insertPersonIfNotExists
-GO
-
-IF OBJECT_ID('addDayReservationDetails') IS NOT NULL
-DROP PROCEDURE addDayReservationDetails
-GO
-
-IF OBJECT_ID('addWorkshopReservationDetails') IS NOT NULL
-DROP PROCEDURE addWorkshopReservationDetails
-GO
-
-IF OBJECT_ID('removeWorkshopReservationDetails') IS NOT NULL
-DROP PROCEDURE removeWorkshopReservationDetails
-GO
-
-IF OBJECT_ID('removeDayReservationDetails') IS NOT NULL
-DROP PROCEDURE removeDayReservationDetails
-GO
-
 IF OBJECT_ID('addPayment') IS NOT NULL
 DROP PROCEDURE addPayment
 GO
@@ -80,6 +12,10 @@ BEGIN
 	update Reservation set Paid = Paid + @payment 
 		where ReservationID = @reservationId
 END
+GO
+
+IF OBJECT_ID('insertIfNotExistsAddress') IS NOT NULL 
+DROP PROC insertIfNotExistsAddress;
 GO
 
 CREATE procedure insertIfNotExistsAddress
@@ -97,6 +33,10 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID('insertPersonIfNotExists') IS NOT NULL
+DROP PROCEDURE insertPersonIfNotExists
+GO
+
 CREATE PROCEDURE insertPersonIfNotExists
 	@FirstName varchar(50),
 	@LastName varchar(50),
@@ -112,6 +52,9 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID('addEarlyBirdDiscount') IS NOT NULL 
+DROP PROC addEarlyBirdDiscount;
+GO
 
 CREATE PROCEDURE addEarlyBirdDiscount
 	@ConferenceName varchar(50),
@@ -129,6 +72,10 @@ BEGIN
 		values (@conferenceId, @StartTime, @EndTime, @Discount)
 
 END
+GO
+
+IF OBJECT_ID('addClientCompany') IS NOT NULL 
+DROP PROC addClientCompany;
 GO
 
 CREATE procedure addClientCompany
@@ -163,6 +110,9 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID('addClientPerson') IS NOT NULL 
+DROP PROC addClientPerson;
+GO
 
 CREATE PROCEDURE addClientPerson
 	@FirstName varchar(50),
@@ -203,6 +153,10 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID('addConference') IS NOT NULL 
+DROP PROC addConference;
+GO
+
 CREATE PROCEDURE addConference
 	@Name varchar(50),
 	@Venue varchar(50),
@@ -227,6 +181,9 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID('addConferenceDay') IS NOT NULL 
+DROP PROC addConferenceDay;
+GO
 
 CREATE PROCEDURE addConferenceDay
 	@ConferenceName varchar(50),
@@ -244,6 +201,10 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID('addWorkshopType') IS NOT NULL 
+DROP PROC addWorkshopType;
+GO
+
 CREATE PROCEDURE addWorkshopType
 	@WorkshopTypeName varchar(50),
 	@Capacity int,
@@ -254,6 +215,10 @@ BEGIN
 	insert into WorkshopType(Name, Capacity, Price)
 		values(@WorkshopTypeName, @Capacity, @Price)
 END
+GO
+
+IF OBJECT_ID('addWorkshopInstance') IS NOT NULL 
+DROP PROC addWorkshopInstance;
 GO
 
 CREATE PROCEDURE addWorkshopInstance
@@ -282,6 +247,10 @@ END
 GO
 
 --=============RESERVATIONS=============--
+
+IF OBJECT_ID('addWorkshopReservationDetails') IS NOT NULL
+DROP PROCEDURE addWorkshopReservationDetails
+GO
 
 CREATE PROCEDURE addWorkshopReservationDetails
 	@reservationId int,
@@ -331,6 +300,10 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID('addDayReservationDetails') IS NOT NULL
+DROP PROCEDURE addDayReservationDetails
+GO
+
 CREATE PROCEDURE addDayReservationDetails
 	@reservationId int,
 	@conferenceName varchar(50),
@@ -356,21 +329,22 @@ BEGIN
 	
 	set @personId = (select PersonId from Person where Mail = @Mail)
 	
-	if @IndexNumber is null
-		set @student = 0;
-	else 
-		set @student = 1;
-
-	BEGIN TRY
-		insert into DayReservationDetails(DayReservationID, PersonID, Student)
-			values(@dayReservationId, @personId, @student)
-	END TRY
-	BEGIN CATCH
-		insert into DayReservationDetails(DayReservationID, PersonID)
-			values(@dayReservationId, @personId)
-	END CATCH;
+	if @IndexNumber is null begin
+           insert into DayReservationDetails(DayReservationID, PersonID, Student)
+				values(@dayReservationId, @personId, 0)
+	end else begin try
+           insert into DayReservationDetails(DayReservationID, PersonID, Student)
+				values(@dayReservationId, @personId, 1)
+	end try begin catch
+           insert into DayReservationDetails(DayReservationID, PersonID, Student)
+				values(@dayReservationId, @personId, 0)
+	end catch
 END
 GO 
+
+IF OBJECT_ID('addNewReservation') IS NOT NULL
+DROP PROCEDURE addNewReservation
+GO
 
 CREATE PROCEDURE addNewReservation
 	@Login varchar(50),
@@ -390,6 +364,10 @@ BEGIN
 END
 GO 
 
+IF OBJECT_ID('addDayReservation') IS NOT NULL
+DROP PROCEDURE addDayReservation
+GO
+
 CREATE PROCEDURE addDayReservation
 	@reservationId int,
 	@conferenceName varchar(50),
@@ -407,6 +385,10 @@ BEGIN
 	insert into DayReservation(DayID, ReservationID, NumberOfParticipants, NumberOfStudentDiscounts)
 		values (@dayId, @reservationId, @NumberOfParticipants, @NumberOfStudentDiscounts)
 END
+GO
+
+IF OBJECT_ID('addWorkshopReservation') IS NOT NULL
+DROP PROCEDURE addWorkshopReservation
 GO
 
 CREATE PROCEDURE addWorkshopReservation
@@ -439,11 +421,16 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID('removeWorkshopReservationDetails') IS NOT NULL
+DROP PROCEDURE removeWorkshopReservationDetails
+GO
+
 CREATE PROCEDURE removeWorkshopReservationDetails
 	@reservationId int,
 	@conferenceName varchar(50),
 	@workshopName varchar(50),
 	@date date,
+	@startTime time,
 	@Mail varchar(50)
 AS
 BEGIN
@@ -462,7 +449,8 @@ BEGIN
 		
 	set @workshopInstanceId = (select WorkshopInstanceId from WorkshopInstance
 		where DayID = dbo.getConferenceDayId(@conferenceName, @date) 
-		and WorkshopTypeID = (select WorkshopTypeID from WorkshopType where Name = @workshopName))
+		and WorkshopTypeID = (select WorkshopTypeID from WorkshopType where Name = @workshopName)
+		and StartTime = @startTime)
 		
 	delete from WorkshopReservationDetails 
 		where DayReservationDetailsID = @dayReservationDetailsId 
@@ -471,6 +459,10 @@ BEGIN
 		
 		
 END
+GO
+
+IF OBJECT_ID('removeDayReservationDetails') IS NOT NULL
+DROP PROCEDURE removeDayReservationDetails
 GO
 
 CREATE PROCEDURE removeDayReservationDetails
