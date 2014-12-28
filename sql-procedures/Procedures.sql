@@ -3,24 +3,27 @@ use pachuta_a
 IF OBJECT_ID('addEarlyBirdDiscount') IS NOT NULL 
 DROP PROC addEarlyBirdDiscount;
 GO
+
 IF OBJECT_ID('addClientCompany') IS NOT NULL 
 DROP PROC addClientCompany;
 GO
+
 IF OBJECT_ID('addClientPerson') IS NOT NULL 
 DROP PROC addClientPerson;
 GO
+
 IF OBJECT_ID('addConference') IS NOT NULL 
 DROP PROC addConference;
 GO
+
 IF OBJECT_ID('addConferenceDay') IS NOT NULL 
 DROP PROC addConferenceDay;
 GO
+
 IF OBJECT_ID('addWorkshop') IS NOT NULL
 DROP PROC addWorkshop;
 GO
-IF OBJECT_ID('addNewPerson') IS NOT NULL
-DROP PROC addNewPerson
-GO
+
 IF OBJECT_ID('insertIfNotExistsAddress') IS NOT NULL 
 DROP PROC insertIfNotExistsAddress;
 GO
@@ -58,11 +61,25 @@ DROP PROCEDURE addWorkshopReservationDetails
 GO
 
 IF OBJECT_ID('removeWorkshopReservationDetails') IS NOT NULL
-DROP PROCEDURE removeWorkshopReservationDetail
+DROP PROCEDURE removeWorkshopReservationDetails
 GO
 
 IF OBJECT_ID('removeDayReservationDetails') IS NOT NULL
-DROP PROCEDURE removeDayReservationDetail
+DROP PROCEDURE removeDayReservationDetails
+GO
+
+IF OBJECT_ID('addPayment') IS NOT NULL
+DROP PROCEDURE addPayment
+GO
+
+CREATE procedure addPayment
+	@reservationId int,
+	@payment money
+AS
+BEGIN
+	update Reservation set Paid = Paid + @payment 
+		where ReservationID = @reservationId
+END
 GO
 
 CREATE procedure insertIfNotExistsAddress
@@ -128,8 +145,8 @@ CREATE procedure addClientCompany
 AS
 BEGIN
 		SET NOCOUNT ON;
-		declare @addressId int --id adresu ktory dodajemy
-		declare @clientId int --id utworzonego klienta
+		declare @addressId int
+		declare @clientId int
 			
 		exec insertIfNotExistsAddress @Country, @City, @Street, @PostalCode
 		
@@ -167,24 +184,20 @@ BEGIN
 	declare @addressId Int;
 	declare @clientId Int;
 	
-	--tworzenie rekordu Person
 	exec insertPersonIfNotExists @FirstName, @LastName, @Mail, @IndexNumber
 	set @personId = (select PersonId from Person where Mail = @Mail)
 	
-	--tworzenie rekordu Address
 	exec insertIfNotExistsAddress @Country, @City, @Street, @PostalCode
 		
 	set @addressId = (select a.AddressID from [Address] as a 
 		where a.Country = @Country and a.City = @City and 
 		a.Street = @Street and a.PostalCode = @PostalCode)
 	
-	--tworzenie rekordu Client
 	insert into Client(AddressID,Login,Password,Phone,BankAccount) 
 		values (@addressId, @Login, @Password, @Phone, @BankAccount)
 		
 	set @clientId = SCOPE_IDENTITY();
 	
-	--tworzenie rekordu PersonClient
 	insert into PersonClient(ClientID,PersonID)
 		values (@clientId,@personId)
 END
@@ -209,7 +222,6 @@ BEGIN
 	set @addressId = (select a.AddressID from [Address] as a 
 		where a.Country = @Country and a.City = @City and a.Street = @Street and a.PostalCode = @PostalCode)
 		
-	--dodanie rekordu nowej konferencji
 	insert into Conference(AddressID,Name,Venue,DayPrice,StudentDiscount)
 		values(@addressId,@Name,@Venue,@DayPrice,@StudentDiscount)
 END
@@ -229,19 +241,6 @@ BEGIN
 	
 	insert into Day(ConferenceID, Date, Capacity)
 		values(@conferenceId, @Date, @Capacity)
-END
-GO
-
-CREATE PROCEDURE addNewPerson
-	@FirstName varchar(50),
-	@LastName varchar(50),
-	@Mail varchar(50),
-	@IndexNumber varchar(6)
-AS
-BEGIN
-	SET NOCOUNT ON;
-	
-	exec insertPersonIfNotExists @FirstName, @LastName, @Mail, @IndexNumber
 END
 GO
 
@@ -282,7 +281,7 @@ BEGIN
 END
 GO
 
---=============REZERWACJE=============--
+--=============RESERVATIONS=============--
 
 CREATE PROCEDURE addWorkshopReservationDetails
 	@reservationId int,
@@ -362,10 +361,14 @@ BEGIN
 	else 
 		set @student = 1;
 
-	
-	insert into DayReservationDetails(DayReservationID, PersonID, Student)
-		values(@dayReservationId, @personId, @student)
-	
+	BEGIN TRY
+		insert into DayReservationDetails(DayReservationID, PersonID, Student)
+			values(@dayReservationId, @personId, @student)
+	END TRY
+	BEGIN CATCH
+		insert into DayReservationDetails(DayReservationID, PersonID)
+			values(@dayReservationId, @personId)
+	END CATCH;
 END
 GO 
 
