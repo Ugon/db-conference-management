@@ -1,15 +1,13 @@
 ﻿Procedury
--Dodawanie nowego klienta
--Dodawanie nowej firmy
--Dodawanie uczestnika warsztatu/konferencji 
--Dodawanie numeru legitymacji uczestnika (opcjonalne - można także zrobić to od razu przy dodawaniu klienta, bez możliwości zmiany)
--Dodawanie konferencji (podany przynajmniej jeden próg cenowy ?)
--Dodawanie nowego progu cenowego
--Dodawanie warsztatu
--Dodawanie dnia (w sensie konferencji)
+-Dodawanie nowego klienta DONE
+-Dodawanie nowej firmy DONE
+-Dodawanie uczestnika warsztatu/konferencji  DONE
+-Dodawanie konferencji DONE
+-Dodawanie nowego progu cenowego DONE
+-Dodawanie warsztatu DONE
+-Dodawanie dnia (w sensie konferencji) DONE
 -Dodanie zapłaty za rezerwację
--Tworzenie rezerwacji (zarówno na dzień jak i warsztat)
--Faktura dla danego klienta (ona coś o tym mówiła)
+-Tworzenie rezerwacji (zarówno na dzień jak i warsztat) DONE
 
 Triggery
 -Sprawdzanie czy klient nie zapłacił już całości(przy zapłacie za warsztat/dzień konferencji) DONE - constraint paid <= price
