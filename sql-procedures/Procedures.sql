@@ -318,7 +318,6 @@ BEGIN
 	declare @dayReservationId int;
 	declare @dayId int;
 	declare @personId int;
-	declare @student bit;
 	
 	set @dayId = dbo.getConferenceDayId(@conferenceName, @date);
 	
