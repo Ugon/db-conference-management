@@ -8,7 +8,7 @@ CREATE VIEW comingConferences
 AS
 	select distinct Conference.ConferenceId, Name as 'Nazwa konferencji', 
 	Venue as 'Lokalizacja', 
-	(select top 1 Date from Day where Day.ConferenceID = Conference.ConferenceID) as 'Data rozpoczÍcia' 
+	(select top 1 Date from Day where Day.ConferenceID = Conference.ConferenceID order by Date ASC) as 'Data rozpoczƒôcia' 
 	from Conference inner join Day on Day.ConferenceID = Conference.ConferenceID
 	where Date > GETDATE()
 GO
@@ -36,7 +36,7 @@ GO
 
 CREATE VIEW mostValuableClients
 AS
-	select top 10 T.ClientId as 'Identyfikator', T.CompanyName as 'Nazwa klienta', T.TotalMoneySpent as 'Wyda≥ ≥πcznie' from
+	select top 10 T.ClientId as 'Identyfikator', T.CompanyName as 'Nazwa klienta', T.TotalMoneySpent as 'Wyda≈Ç ≈Ç≈°cznie' from
 	(select C.ClientId, CP.CompanyName, C.TotalMoneySpent
 	from Client C 
 	inner join Company CP on C.ClientID = CP.ClientID
@@ -56,8 +56,8 @@ CREATE VIEW clientsWithDebt
 AS
 	SELECT  C.ClientID as 'Numer klienta',
 	CompanyName as 'Nazwa', 
-	sum(Price) as 'Do zap≥aty', 
-	sum(Paid) as 'Zap≥acono', 
+	sum(Price) as 'Do zap≈Çaty', 
+	sum(Paid) as 'Zap≈Çacono', 
 	sum(Paid) - sum(Price) as 'Saldo'
 	from Company C
 	inner join Reservation R on C.ClientId = R.ClientId
@@ -66,8 +66,8 @@ AS
 	union
 	SELECT PC.ClientID,
 	P.LastName + ' ' + P.FirstName as 'Nazwa',
-	sum(Price) as 'Do zap≥aty',
-	sum(Paid) as 'Zap≥acono', 
+	sum(Price) as 'Do zap≈Çaty',
+	sum(Paid) as 'Zap≈Çacono', 
 	sum(Paid) - sum(Price) as 'Saldo'
 	from Person P
 	inner join PersonClient PC on P.PersonID = PC.ClientID
