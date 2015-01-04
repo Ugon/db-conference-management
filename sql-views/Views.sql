@@ -147,7 +147,7 @@ AS
 	) as 'Time left'
 	from Reservation R
 	inner join Client C on C.ClientID = R.ClientID
-	where Paid < Price
+	where Paid < Price and Cancelled = 'No'
 GO
 
 IF OBJECT_ID('unpaidAfterWeek') IS NOT NULL
@@ -167,6 +167,7 @@ AS
 	from Reservation R
 	inner join Client C on C.ClientID = R.ClientID
 	where Paid < Price and datediff(ss,GETDATE(), DATEADD(day,7,ReservationTime) ) < 0
+		and Cancelled = 'No'
 GO
 
 IF OBJECT_ID('badgesForAllParticipants') IS NOT NULL
@@ -292,3 +293,247 @@ RETURN
 		)
 )
 GO
+
+IF OBJECT_ID('personClientDaysDetails') IS NOT NULL
+drop function personClientDaysDetails
+GO
+
+CREATE FUNCTION personClientDaysDetails(@login varchar(200), @reservationID int)
+RETURNS TABLE
+AS
+RETURN 
+(
+	select CF.Name as 'Conference Name', Date, WT.Name as 'Workshop Name', StartTime, EndTime, Student
+	from Client C 
+	inner join Reservation R on R.ClientID = C.ClientID and C.Login  = @login
+	inner join DayReservation DR on DR.ReservationID = R.ReservationID and R.ReservationID = @reservationID
+	inner join Day D on DR.DayID = D.DayID
+	inner join Conference CF on CF.ConferenceID = D.ConferenceID
+	inner join WorkshopReservation WR on DR.DayReservationID = WR.DayReservationID 
+	inner join WorkshopInstance WI on WI.WorkshopInstanceID = WR.WorkshopInstanceID
+	inner join WorkshopType WT on WT.WorkshopTypeID = WI.WorkshopTypeID
+	inner join DayReservationDetails DRD on DRD.DayReservationID = DR.DayReservationID
+)
+GO
+
+IF OBJECT_ID('personClientWorkshopsDetails') IS NOT NULL
+drop function personClientWorkshopsDetails
+GO
+
+CREATE FUNCTION personClientWorkshopsDetails(@login varchar(200), @reservationId int)
+RETURNS TABLE
+AS
+RETURN 
+(
+	select CF.Name as 'Conference Name', WT.Name as 'Workshop Name', StartTime, EndTime, Student
+	from Client C
+	inner join Reservation R on C.ClientID = R.ClientID and R.ReservationID = @reservationId
+	inner join DayReservation DR on DR.ReservationID = R.ReservationID
+	inner join DayReservationDetails DRD on DRD.DayReservationID = DR.DayReservationID
+	inner join WorkshopReservation WR on WR.DayReservationID = DR.DayReservationID
+	inner join WorkshopInstance WI on WR.WorkshopInstanceID = WI.WorkshopInstanceID
+	inner join WorkshopType WT on WT.WorkshopTypeID = WI.WorkshopTypeID
+	inner join Day D on D.DayID = WI.DayID
+	inner join Conference CF on CF.ConferenceID = D.ConferenceID
+ 	where 
+	C.Login = @login
+)
+GO
+
+IF OBJECT_ID('companyClientDaysDetails') IS NOT NULL
+drop function companyClientDaysDetails
+GO
+
+CREATE FUNCTION companyClientDaysDetails(@login varchar(200), @reservationID int)
+RETURNS TABLE
+AS
+RETURN 
+(
+	select CF.Name, Date, NumberOfParticipants, NumberOfStudentDiscounts
+	from Client C
+	inner join DayReservation DR on DR.ReservationID = @reservationID
+	inner join Day D on D.DayID = DR.DayID
+	inner join Conference CF on CF.ConferenceID = D.ConferenceID
+	where 
+	C.Login = @login
+)
+GO
+
+IF OBJECT_ID('companyClientWorkshopsDetails') IS NOT NULL
+drop function companyClientWorkshopsDetails
+GO
+
+CREATE FUNCTION companyClientWorkshopsDetails(@login varchar(200), @reservationID int)
+RETURNS TABLE
+AS
+RETURN 
+(
+	select CF.Name as 'Conference Name', Date, WT.Name as 'Workshop Name', StartTime, EndTime,
+		WR.NumberOfParticipants as 'Workshop Participants', 
+		WR.NumberOfStudentDiscounts as 'Workshop student discounts'
+	from Client C
+	inner join DayReservation DR on DR.ReservationID = @reservationID
+	inner join Day D on D.DayID = DR.DayID
+	inner join Conference CF on CF.ConferenceID = D.DayID
+	inner join WorkshopReservation WR on WR.DayReservationID = DR.DayReservationID
+	inner join WorkshopInstance WI on WI.WorkshopInstanceID = WR.WorkshopInstanceID
+	inner join WorkshopType WT on WT.WorkshopTypeID = WI.WorkshopTypeID
+	where 
+	C.Login = @login
+)
+GO
+
+IF OBJECT_ID('participantsListForDay') IS NOT NULL
+drop function participantsListForDay
+GO
+
+CREATE FUNCTION participantsListForDay(@conferenceName varchar(200), @date date, @login varchar(200))
+RETURNS TABLE
+AS
+RETURN 
+(
+	select FirstName, LastName, Mail, Student
+	from Day D
+	inner join DayReservation DR on DR.DayID = D.DayID
+	inner join DayReservationDetails DRD on DRD.DayReservationID = DR.DayReservationID
+	inner join Person P on P.PersonID = DRD.PersonID
+	inner join Reservation R on R.ReservationID = DR.ReservationID
+	inner join Client C on C.ClientID = R.ClientID
+		and C.Login = @login
+	where 
+	D.DayID = dbo.getConferenceDayId(@conferenceName, @date)
+)
+GO
+
+IF OBJECT_ID('participantsListForWorkshop') IS NOT NULL
+drop function participantsListForWorkshop
+GO
+
+CREATE FUNCTION participantsListForWorkshop(@conferenceName varchar(200), @date date,
+	@workshopName varchar(200), @startTime time, @login varchar(200))
+RETURNS TABLE
+AS
+RETURN 
+(
+	select FirstName, LastName, Mail, Student
+	from Day D
+	inner join WorkshopInstance WI on WI.DayID = D.DayID and WI.StartTime = @startTime
+	inner join WorkshopType WT on WT.WorkshopTypeID = WI.WorkshopTypeID and WT.Name = @workshopName
+	inner join DayReservation DR on DR.DayID = D.DayID
+	inner join DayReservationDetails DRD on DRD.DayReservationID  = DR.DayReservationID
+	inner join Person P on P.PersonID = DRD.PersonID  
+	inner join Reservation R on R.ReservationID = DR.ReservationID
+	inner join Client C on C.ClientID = R.ClientID and C.Login = @login
+	where 
+	D.DayID = dbo.getConferenceDayId(@conferenceName, @date)
+)
+GO
+
+IF OBJECT_ID('dayToFill') IS NOT NULL
+drop function dayToFill
+GO
+
+CREATE FUNCTION dayToFill(@conferenceName varchar(200), @date date, @login varchar(200))
+RETURNS TABLE
+AS
+RETURN 
+(
+	select NumberOfParticipants, NumberOfStudentDiscounts
+	from Client C	
+	inner join Reservation R on R.ClientID = C.ClientID
+	inner join DayReservation DR on DR.ReservationID = R.ReservationID
+		and DR.DayID = dbo.getConferenceDayId(@conferenceName, @date)
+	where 
+	C.Login = @login
+
+)
+GO
+
+IF OBJECT_ID('workshopToFill') IS NOT NULL
+drop function workshopToFill
+GO
+
+CREATE FUNCTION workshopToFill(@conferenceName varchar(200), @date date, @login varchar(200), 
+	@workshopName varchar(200), @startTime time)
+RETURNS TABLE
+AS
+RETURN 
+(
+	select WR.NumberOfParticipants, WR.NumberOfStudentDiscounts
+	from Client C	
+	inner join Reservation R on R.ClientID = C.ClientID
+	inner join DayReservation DR on DR.ReservationID = R.ReservationID
+		and DR.DayID = dbo.getConferenceDayId(@conferenceName, @date)
+	inner join WorkshopReservation WR on WR.DayReservationID = DR.DayReservationID
+	inner join WorkshopInstance WI on WI.WorkshopInstanceID = WR.WorkshopInstanceID
+		and WI.DayID = DR.DayID and WI.StartTime = @startTime
+	inner join WorkshopType WT on WT.WorkshopTypeID = WI.WorkshopTypeID and WT.Name = @workshopName
+	where 
+	C.Login = @login
+)
+GO
+
+
+IF OBJECT_ID('conferenceListForParticipant') IS NOT NULL
+drop function conferenceListForParticipant
+GO
+
+CREATE FUNCTION conferenceListForParticipant(@mail varchar(200))
+RETURNS TABLE
+AS
+RETURN 
+(
+	select distinct	CF.Name, Venue, Country, City, Street, PostalCode
+	from Person P
+	inner join DayReservationDetails DRD on DRD.PersonID = P.PersonID
+	inner join DayReservation DR on DRD.DayReservationID = DR.DayReservationID
+	inner join Day D on D.DayID = DR.DayID
+	inner join Conference CF on CF.ConferenceID = D.ConferenceID
+	inner join Address A on CF.AddressID = A.AddressID 
+	where P.Mail = @mail
+)
+GO
+
+IF OBJECT_ID('daysListForParticipant') IS NOT NULL
+drop function daysListForParticipant
+GO
+
+CREATE FUNCTION daysListForParticipant(@mail varchar(200))
+RETURNS TABLE
+AS
+RETURN 
+(
+	select CF.Name, Date
+	from Person P
+	inner join DayReservationDetails DRD on DRD.PersonID = P.PersonID
+	inner join DayReservation DR on DRD.DayReservationID = DR.DayReservationID
+	inner join Day D on D.DayID = DR.DayID
+	inner join Conference CF on CF.ConferenceID = D.ConferenceID
+	where P.Mail = @mail 
+)
+GO
+
+IF OBJECT_ID('workshopListForParticipant') IS NOT NULL
+drop function workshopListForParticipant
+GO
+
+CREATE FUNCTION workshopListForParticipant(@mail varchar(200))
+RETURNS TABLE
+AS
+RETURN 
+(
+	select CF.Name as 'Conference Name', Date, WT.Name as 'Workshop Name', StartTime, EndTime, Location
+	from Person P
+	inner join DayReservationDetails DRD on DRD.PersonID = P.PersonID
+	inner join WorkshopReservationDetails WRD on WRD.DayReservationDetailsID = DRD.DayReservationDetailsID
+	inner join WorkshopReservation WR on WR.WorkshopReservationID = WRD.WorkshopReservationID
+	inner join WorkshopInstance WI on WI.WorkshopInstanceID = WR.WorkshopInstanceID
+	inner join WorkshopType WT on WT.WorkshopTypeID = WI.WorkshopTypeID
+	inner join Day D on D.DayID = WI.DayID
+	inner join Conference CF on CF.ConferenceID = D.ConferenceID
+	where Mail = @mail
+)
+GO
+
+
+
