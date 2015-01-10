@@ -246,7 +246,7 @@ go
 if object_id('calculateWorkshopSlotsFilledAfterDeletingWorkshopReservation') is not null drop trigger calculateWorkshopSlotsFilledAfterDeletingWorkshopReservation
 go
 --SlotsFilled <= Capacity enforced by constraint
-create trigger calculateWorkshopSlotsFilledAfterDeletingWorkshopReservation on WorkshopReservation after insert as begin
+create trigger calculateWorkshopSlotsFilledAfterDeletingWorkshopReservation on WorkshopReservation after delete as begin
 	declare @WorkshopInstanceID int = (select WorkshopInstanceID from deleted)
 	declare @NumberOfParticipants int = (select NumberOfParticipants from deleted)
 	update WorkshopInstance set SlotsFilled -= @NumberOfParticipants where WorkshopInstanceID = @WorkshopInstanceID
