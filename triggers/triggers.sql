@@ -42,10 +42,7 @@ create function calculateDayPrice(@DayID int , @ReservationTime datetime, @Stude
 	set @DayPrice = (select c.DayPrice from Conference as c 
 		inner join [Day] as d on c.ConferenceID = d.ConferenceID
 		where d.DayID = @DayID)
-	if @StudentDiscount <= @EarlyBirdDiscount
-		set @PriceAfterDiscount = @DayPrice * (1 - @EarlyBirdDiscount)
-	else 
-		set @PriceAfterDiscount = @DayPrice * (1 - @StudentDiscount)
+	set @PriceAfterDiscount = @DayPrice * (1 - @EarlyBirdDiscount) * (1 - @StudentDiscount)
 	return @PriceAfterDiscount
 end
 go
@@ -330,9 +327,9 @@ create trigger checkThatPersonWorkshopReservationsDoNotOverlap on WorkshopReserv
 end
 go
 
-if object_id('checkThatWorkshopNumberOfParticipantsIsNotGreaterThatDayNumberOfParticipants') is not null drop trigger checkThatWorkshopNumberOfParticipantsIsNotGreaterThatDayNumberOfParticipants
+if object_id('checkThatWorkshopNumberOfParticipantsIsNotGreaterThanDayNumberOfParticipants') is not null drop trigger checkThatWorkshopNumberOfParticipantsIsNotGreaterThanDayNumberOfParticipants
 go
-create trigger checkThatWorkshopNumberOfParticipantsIsNotGreaterThatDayNumberOfParticipants on WorkshopReservation after insert as
+create trigger checkThatWorkshopNumberOfParticipantsIsNotGreaterThanDayNumberOfParticipants on WorkshopReservation after insert as
 	if (select NumberOfParticipants from inserted) > (select dr.NumberOfParticipants from inserted as i inner join DayReservation as dr on i.DayReservationID = i.DayReservationID)
 	begin
 		raiserror('WorkshopReservation NumberOfParticipants is greater than DayReservation NumberOfParticipants', 16, 1)
@@ -418,8 +415,8 @@ go
 create trigger checkThatEarlyBirdsDiscountsDoNotOverlap on EarlyBirdDiscount after insert, update as
 	declare @EarlyBirdDiscounts table(EarlyBirdDiscountID int primary key, StartTime time, EndTime time)
 	insert into @EarlyBirdDiscounts (EarlyBirdDiscountID, StartTime, EndTime)
-		select ebd.EarlyBirdDiscountID, ebd.StartTime, ebd.EndTime from EarliBirdDiscounts as ebd
-		inner join inserted as i on i.ConferenceID = ebd.ConderenceID
+		select ebd.EarlyBirdDiscountID, ebd.StartTime, ebd.EndTime from EarlyBirdDiscount as ebd
+		inner join inserted as i on i.ConferenceID = ebd.ConferenceID
 	if exists (select * from @EarlyBirdDiscounts as t1 inner join @EarlyBirdDiscounts as t2 on t1.EarlyBirdDiscountID != t2.EarlyBirdDiscountID
 		where (t1.StartTime < t2.EndTime and t2.EndTime < t1.EndTime) or (t1.StartTime < t2.StartTime and t2.StartTime < t1.EndTime))
 	begin
@@ -443,7 +440,7 @@ go
 if object_id('checkThatThereIsNoDeleteOnDayReservationAfterPayment') is not null drop trigger checkThatThereIsNoDeleteOnDayReservationAfterPayment
 go
 create trigger checkThatThereIsNoDeleteOnDayReservationAfterPayment on DayReservation after delete as begin
-	if (select r.Paid from Reservation as r inner join deeted as d on r.ReservationID = d.ReservationID) != 0 begin
+	if (select r.Paid from Reservation as r inner join deleted as d on r.ReservationID = d.ReservationID) != 0 begin
 		raiserror('Attempting to modify a reservation that was already paid for', 16, 1)
 		rollback transaction
 		return
@@ -455,7 +452,7 @@ if object_id('checkThatThereIsNoInsertUpdateOnWorkshopReservationAfterPayment') 
 go
 create trigger checkThatThereIsNoInsertUpdateOnWorkshopReservationAfterPayment on WorkshopReservation after insert, update as begin
 	if (select r.Paid from Reservation as r
-			inner join DayReservationas dr on r.ReservationID = dr.ReservationID
+			inner join DayReservation dr on r.ReservationID = dr.ReservationID
 			inner join inserted as i on dr.DayReservationID = i.DayReservationID) != 0 begin
 		raiserror('Attempting to modify a reservation that was already paid for', 16, 1)
 		rollback transaction
@@ -468,11 +465,62 @@ if object_id('checkThatThereIsNoDeleteOnWorkshopReservationAfterPayment') is not
 go
 create trigger checkThatThereIsNoDeleteOnWorkshopReservationAfterPayment on WorkshopReservation after delete as begin
 	if (select r.Paid from Reservation as r
-			inner join DayReservationas dr on r.ReservationID = dr.ReservationID
+			inner join DayReservation dr on r.ReservationID = dr.ReservationID
 			inner join deleted as d on dr.DayReservationID = d.DayReservationID) != 0 begin
 		raiserror('Attempting to modify a reservation that was already paid for', 16, 1)
 		rollback transaction
 		return
+	end
+end
+go
+
+if object_id('checkDayReservationNumberOfParticipantsAfterUpdate') is not null drop trigger checkDayReservationNumberOfParticipantsAfterUpdate
+go
+create trigger checkDayReservationNumberOfParticipantsAfterUpdate on DayReservation after update as begin
+	if(select NumberOfParticipants from inserted) < (select NumberOfParticipants from deleted) begin
+		if (select count(*) from DayReservationDetails as drd inner join inserted as i on i.DayReservationID = drd.DayReservationID) > (select NumberOfParticipants from inserted)
+			raiserror('Insterted NumberOfParticipants can not accomodate all currently enlisted participants', 16, 1)
+			rollback transaction
+			return
+	end
+end
+go
+
+if object_id('checkDayReservationNumberOfStudentsAfterUpdate') is not null drop trigger checkDayReservationNumberOfStudentsAfterUpdate
+go
+create trigger checkDayReservationNumberOfStudentsAfterUpdate on WorkshopReservation after update as begin
+	if(select NumberOfStudentDiscounts from inserted) < (select NumberOfStudentDiscounts from deleted) begin
+		if (select count(*) from DayReservationDetails as drd inner join inserted as i on i.DayReservationID = drd.DayReservationID where drd.Student = 1) > (select NumberOfStudentDiscounts from inserted)
+			raiserror('Insterted NumberOfStudentDiscounts can not accomodate all currently enlisted students', 16, 1)
+			rollback transaction
+			return
+	end
+end
+go
+
+if object_id('checkWorkshopReservationNumberOfParticipantsAfterUpdate') is not null drop trigger checkWorkshopReservationNumberOfParticipantsAfterUpdate
+go
+create trigger checkWorkshopReservationNumberOfParticipantsAfterUpdate on WorkshopReservation after update as begin
+	if(select NumberOfParticipants from inserted) < (select NumberOfParticipants from deleted) begin
+		if (select count(*) from WorkshopReservationDetails as wrd inner join inserted as i on i.DayReservationID = wrd.WorkshopReservationID) > (select NumberOfParticipants from inserted)
+			raiserror('Insterted NumberOfParticipants can not accomodate all currently enlisted participants', 16, 1)
+			rollback transaction
+			return
+	end
+end
+go
+
+if object_id('checkWorkshopReservationNumberOfStudentsAfterUpdate') is not null drop trigger checkWorkshopReservationNumberOfStudentsAfterUpdate
+go
+create trigger checkWorkshopReservationNumberOfStudentsAfterUpdate on WorkshopReservation after update as begin
+	if(select NumberOfStudentDiscounts from inserted) < (select NumberOfStudentDiscounts from deleted) begin
+		if (select count(*) from WorkshopReservationDetails as wrd
+			inner join inserted as i on i.WorkshopReservationID = wrd.WorkshopReservationID 
+			inner join DayReservationDetails as drd on drd.DayReservationDetailsID = wrd.DayReservationDetailsID
+			where drd.Student = 1) > (select NumberOfStudentDiscounts from inserted)
+			raiserror('Insterted NumberOfStudentDiscounts can not accomodate all currently enlisted students', 16, 1)
+			rollback transaction
+			return
 	end
 end
 go
