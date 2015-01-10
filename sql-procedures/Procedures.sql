@@ -566,11 +566,11 @@ as update Reservation set Cancelled = 1 where ReservationID = @ReservationID
 go
 
 
-IF OBJECT_ID('changeStatus') IS NOT NULL 
-DROP PROC changeStatus
+IF OBJECT_ID('changeParticipantsStudentStatus') IS NOT NULL 
+DROP PROC changeParticipantsStudentStatus
 GO
 
-CREATE PROCEDURE changeStatus
+CREATE PROCEDURE changeParticipantsStudentStatus
 	@reservationId int,
 	@conferenceName int,
 	@date date,
@@ -581,11 +581,15 @@ BEGIN
 	declare @dayReservationDetailsId int;
 	declare @newStudentValue bit;
 
-	set @dayReservationDetailsId = (select DayReservationDetailsId 
+	set @dayReservationDetailsId = (
+		select DayReservationDetailsId 
 		from DayReservation DR
 		inner join DayReservationDetails DRD on DR.DayReservationID = DRD.DayReservationID
-		inner join Person P on P.Mail = @mail and P.PersonID = DRD.PersonID
-		where DR.ReservationID = @reservationId and DayID = dbo.getConferenceDayId(@conferenceName, @date))
+		inner join Person P on P.PersonID = DRD.PersonID
+		where DR.ReservationID = @reservationId 
+		and DayID = dbo.getConferenceDayId(@conferenceName, @date)
+		and P.Mail = @mail
+	)
 
 	set @currentStatus = (select Student 
 		from DayReservationDetails 
@@ -634,11 +638,11 @@ BEGIN
 END
 GO
 
-IF OBJECT_ID('changeNumbersDay') IS NOT NULL 
-DROP PROC changeNumbersDay
+IF OBJECT_ID('changeDayReservationNumbers') IS NOT NULL 
+DROP PROC changeDayReservationNumbers
 GO
 
-CREATE procedure changeNumbersDay
+CREATE procedure changeDayReservationNumbers
 	@reservationId int,
 	@conferenceName varchar(200),
 	@date date,
@@ -665,26 +669,9 @@ CREATE procedure changeNumberOfParticipantsWorkshop
 	@newNumberOfParticipants int
 AS
 BEGIN
-	declare @workshopReservationId int;
-
-	set @workshopReservationId = (
-		select WorkshopReservationId
-		from WorkshopReservation WR
-		where DayReservationID = dbo.getDayReservationId(@reservationId, @conferenceName, @date)
-		and WorkshopInstanceId = (
-			select WorkshopInstanceID 
-			from WorkshopInstance WI
-			where DayID = dbo.getConferenceDayId(@conferenceName, @date)
-			and StartTime = @startTime 
-			and WorkshopTypeID = (
-				select WorkshopTypeID 
-				from WorkshopType 
-				where Name = @workshopName
-			)
-		))
-
 		update WorkshopReservation set NumberOfParticipants = @newNumberOfParticipants
-		where WorkshopReservationID = @workshopReservationId
+		where 
+		WorkshopReservationID = dbo.getWorkshopReservationId(@reservationId, @conferenceName, @workshopName, @date, @startTime)
 END
 GO
 
@@ -702,26 +689,9 @@ CREATE procedure changeNumberOfStudentsWorkshop
 	@newNumberOfStudentDiscounts int
 AS
 BEGIN
-	declare @workshopReservationId int;
-
-	set @workshopReservationId = (
-		select WorkshopReservationId
-		from WorkshopReservation WR
-		where DayReservationID = dbo.getDayReservationId(@reservationId, @conferenceName, @date)
-		and WorkshopInstanceId = (
-			select WorkshopInstanceID 
-			from WorkshopInstance WI
-			where DayID = dbo.getConferenceDayId(@conferenceName, @date)
-			and StartTime = @startTime 
-			and WorkshopTypeID = (
-				select WorkshopTypeID 
-				from WorkshopType 
-				where Name = @workshopName
-			)
-		))
-
-		update WorkshopReservation set NumberOfStudentDiscounts = @newNumberOfStudentDiscounts
-		where WorkshopReservationID = @workshopReservationId
+	update WorkshopReservation set NumberOfStudentDiscounts = @newNumberOfStudentDiscounts
+	where 
+	WorkshopReservationID = dbo.getWorkshopReservationId(@reservationId, @conferenceName, @workshopName, @date, @startTime)
 END
 GO
 
@@ -740,27 +710,10 @@ CREATE procedure changeNumbersWorkshop
 	@newNumberOfStudentDiscounts int
 AS
 BEGIN
-	declare @workshopReservationId int;
-
-	set @workshopReservationId = (
-		select WorkshopReservationId
-		from WorkshopReservation WR
-		where DayReservationID = dbo.getDayReservationId(@reservationId, @conferenceName, @date)
-		and WorkshopInstanceId = (
-			select WorkshopInstanceID 
-			from WorkshopInstance WI
-			where DayID = dbo.getConferenceDayId(@conferenceName, @date)
-			and StartTime = @startTime 
-			and WorkshopTypeID = (
-				select WorkshopTypeID 
-				from WorkshopType 
-				where Name = @workshopName
-			)
-		))
-
-		update WorkshopReservation set NumberOfParticipants = @newNumberOfParticipants,
-			NumberOfStudentDiscounts = @newNumberOfStudentDiscounts
-		where WorkshopReservationID = @workshopReservationId
+	update WorkshopReservation set NumberOfParticipants = @newNumberOfParticipants,
+		NumberOfStudentDiscounts = @newNumberOfStudentDiscounts
+	where
+	 WorkshopReservationID = dbo.getWorkshopReservationId(@reservationId, @conferenceName, @workshopName, @date, @startTime)
 
 END
 GO
@@ -794,19 +747,9 @@ CREATE procedure cancelWorkshopReservation
 AS
 BEGIN
 	delete from WorkshopReservation
-	where WorkshopReservationID = (
-		select WorkshopReservationID
-		from WorkshopReservation
-		where DayReservationID = dbo.getDayReservationId(@reservationId, @conferenceName, @date)
-		and WorkshopInstanceID = (
-			select WorkshopInstanceID from
-			WorkshopInstance WI
-			inner join WorkshopType WT on WI.WorkshopTypeID = WT.WorkshopTypeID 
-				and WT.Name = @workshopName
-			where StartTime = @startTime
-				and DayID = dbo.getConferenceDayId(@conferenceName, @date)
-		)
-	)
+	where
+	WorkshopReservationID = dbo.getWorkshopReservationId(@reservationId, @conferenceName, @workshopName, @date, @startTime)
+
 END
 GO
 
@@ -821,17 +764,16 @@ CREATE PROCEDURE removeParticipantDay
 	@mail varchar(200)
 AS
 BEGIN
+	declare @personId int;
+	declare @dayReservationDetailsId int;
+
+	set @personId = (select PersonId from Person where Mail = mail)
+	set @dayReservationDetailsId = (select DayReservationDetailsID from DayReservationDetails
+		where PersonId = @personId)
+
 	delete from DayReservationDetails
-	where DayReservationDetailsID = (
-		select DayReservationDetailsID 
-		from DayReservationDetails
-		where PersonId = (
-			select PersonId 
-			from Person 
-			where Mail = mail
-		)
+	where DayReservationDetailsID = @dayReservationDetailsId
 		and DayReservationID = dbo.getDayReservationId(@reservationId, @conferenceName, @date)
-	)
 END
 GO
 
@@ -848,24 +790,24 @@ CREATE PROCEDURE removeParticipantWorkshop
 	@mail varchar(200)
 AS
 BEGIN
-	delete from WorkshopReservationDetails
-	where DayReservationDetailsID = (
+	declare @personId int;
+	declare @dayReservationDetailsId int;
+	declare @workshopReservationID int;
+
+	set @personId = (select PersonId from Person where Mail = @mail)
+
+	set @dayReservationDetailsId = (
 		select DayReservationDetailsID 
 		from DayReservationDetails
-		where PersonID = (
-			select PersonId from Person where Mail = @mail
-		)
+		where PersonID = @personId
 		and DayReservationId = dbo.getDayReservationId(@reservationId,@conferenceName, @date)
 	)
-	and WorkshopReservationID = (
-		select WorkshopReservationID
-		from WorkshopReservation WR
-		inner join WorkshopInstance WI on WR.WorkshopInstanceID = WI.WorkshopInstanceID 
-			and WI.StartTime = @startTime and DayID = dbo.getConferenceDayId(@conferenceName, @date)
-		inner join WorkshopType WT on WT.WorkshopTypeID = WI.WorkshopTypeID
-			and WT.Name = @workshopName
-		where DayReservationId = dbo.getDayReservationId(@reservationId,@conferenceName, @date)
-	)
+
+	set @workshopReservationID = dbo.getWorkshopReservationId(@reservationId, @conferenceName, @workshopName, @date, @startTime)
+
+	delete from WorkshopReservationDetails
+	where DayReservationDetailsID = @dayReservationDetailsId
+	and WorkshopReservationID = @workshopReservationID
 END
 GO
 
