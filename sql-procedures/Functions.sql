@@ -3,14 +3,10 @@ use pachuta_a
 IF OBJECT_ID('getConferenceId') IS NOT NULL
 DROP FUNCTION getConferenceId
 GO
-IF OBJECT_ID('getConferenceDayId') IS NOT NULL
-DROP FUNCTION getConferenceDayId
-GO
-
 
 CREATE FUNCTION getConferenceId
 (
-	@Name varchar(50)
+	@Name varchar(200)
 )
 RETURNS int
 AS
@@ -22,9 +18,13 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID('getConferenceDayId') IS NOT NULL
+DROP FUNCTION getConferenceDayId
+GO
+
 CREATE FUNCTION getConferenceDayId
 (
-	@ConferenceName varchar(50),
+	@ConferenceName varchar(200),
 	@Date date
 )
 RETURNS int
@@ -37,5 +37,23 @@ BEGIN
 	set @dayId = (select DayId from Day where ConferenceID = @confNameId and Date = @Date);
 	
 	RETURN @dayId;
+END
+GO
+
+IF OBJECT_ID('getDayReservationId') IS NOT NULL
+DROP FUNCTION getDayReservationId
+GO
+
+CREATE Function getDayReservationId
+(
+	@reservationId int,
+	@conferenceName varchar(200),
+	@date date
+)
+RETURNS int
+AS 
+BEGIN
+	RETURN (select DayReservationId from DayReservation 
+	where ReservationID = @reservationId and DayID = dbo.getConferenceDayId(@conferenceName, @date))
 END
 GO
