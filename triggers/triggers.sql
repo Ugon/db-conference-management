@@ -474,9 +474,9 @@ create trigger checkThatThereIsNoDeleteOnWorkshopReservationAfterPayment on Work
 end
 go
 
-if object_id('checkDayReservationNumberOfParticipantsAfterUpdate') is not null drop trigger checkDayReservationNumberOfParticipantsAfterUpdate
+if object_id('checkDayReservationNumberOfParticipantsAfterUpdatingDayReservation') is not null drop trigger checkDayReservationNumberOfParticipantsAfterUpdatingDayReservation
 go
-create trigger checkDayReservationNumberOfParticipantsAfterUpdate on DayReservation after update as begin
+create trigger checkDayReservationNumberOfParticipantsAfterUpdatingDayReservation on DayReservation after update as begin
 	if(select NumberOfParticipants from inserted) < (select NumberOfParticipants from deleted) begin
 		if (select count(*) from DayReservationDetails as drd inner join inserted as i on i.DayReservationID = drd.DayReservationID) > (select NumberOfParticipants from inserted)
 			raiserror('Insterted NumberOfParticipants can not accomodate all currently enlisted participants', 16, 1)
@@ -486,9 +486,9 @@ create trigger checkDayReservationNumberOfParticipantsAfterUpdate on DayReservat
 end
 go
 
-if object_id('checkDayReservationNumberOfStudentsAfterUpdate') is not null drop trigger checkDayReservationNumberOfStudentsAfterUpdate
+if object_id('checkDayReservationNumberOfStudentsAfterUpdatingWorkshopReservation') is not null drop trigger checkDayReservationNumberOfStudentsAfterUpdatingWorkshopReservation
 go
-create trigger checkDayReservationNumberOfStudentsAfterUpdate on WorkshopReservation after update as begin
+create trigger checkDayReservationNumberOfStudentsAfterUpdatingWorkshopReservation on WorkshopReservation after update as begin
 	if(select NumberOfStudentDiscounts from inserted) < (select NumberOfStudentDiscounts from deleted) begin
 		if (select count(*) from DayReservationDetails as drd inner join inserted as i on i.DayReservationID = drd.DayReservationID where drd.Student = 1) > (select NumberOfStudentDiscounts from inserted)
 			raiserror('Insterted NumberOfStudentDiscounts can not accomodate all currently enlisted students', 16, 1)
@@ -498,9 +498,9 @@ create trigger checkDayReservationNumberOfStudentsAfterUpdate on WorkshopReserva
 end
 go
 
-if object_id('checkWorkshopReservationNumberOfParticipantsAfterUpdate') is not null drop trigger checkWorkshopReservationNumberOfParticipantsAfterUpdate
+if object_id('checkWorkshopReservationNumberOfParticipantsAfterUpdatingWorkshopReservation') is not null drop trigger checkWorkshopReservationNumberOfParticipantsAfterUpdatingWorkshopReservation
 go
-create trigger checkWorkshopReservationNumberOfParticipantsAfterUpdate on WorkshopReservation after update as begin
+create trigger checkWorkshopReservationNumberOfParticipantsAfterUpdatingWorkshopReservation on WorkshopReservation after update as begin
 	if(select NumberOfParticipants from inserted) < (select NumberOfParticipants from deleted) begin
 		if (select count(*) from WorkshopReservationDetails as wrd inner join inserted as i on i.DayReservationID = wrd.WorkshopReservationID) > (select NumberOfParticipants from inserted)
 			raiserror('Insterted NumberOfParticipants can not accomodate all currently enlisted participants', 16, 1)
@@ -510,9 +510,9 @@ create trigger checkWorkshopReservationNumberOfParticipantsAfterUpdate on Worksh
 end
 go
 
-if object_id('checkWorkshopReservationNumberOfStudentsAfterUpdate') is not null drop trigger checkWorkshopReservationNumberOfStudentsAfterUpdate
+if object_id('checkWorkshopReservationNumberOfStudentsAfterUpdatingWorkshopReservation') is not null drop trigger checkWorkshopReservationNumberOfStudentsAfterUpdatingWorkshopReservation
 go
-create trigger checkWorkshopReservationNumberOfStudentsAfterUpdate on WorkshopReservation after update as begin
+create trigger checkWorkshopReservationNumberOfStudentsAfterUpdatingWorkshopReservation on WorkshopReservation after update as begin
 	if(select NumberOfStudentDiscounts from inserted) < (select NumberOfStudentDiscounts from deleted) begin
 		if (select count(*) from WorkshopReservationDetails as wrd
 			inner join inserted as i on i.WorkshopReservationID = wrd.WorkshopReservationID 
