@@ -329,7 +329,7 @@ go
 
 if object_id('checkThatWorkshopNumberOfParticipantsIsNotGreaterThanDayNumberOfParticipants') is not null drop trigger checkThatWorkshopNumberOfParticipantsIsNotGreaterThanDayNumberOfParticipants
 go
-create trigger checkThatWorkshopNumberOfParticipantsIsNotGreaterThanDayNumberOfParticipants on WorkshopReservation after insert as
+ create trigger checkThatWorkshopNumberOfParticipantsIsNotGreaterThanDayNumberOfParticipants on WorkshopReservation after insert as
 	if (select NumberOfParticipants from inserted) > (select dr.NumberOfParticipants from inserted as i inner join DayReservation as dr on i.DayReservationID = dr.DayReservationID)
 	begin
 		raiserror('WorkshopReservation NumberOfParticipants is greater than DayReservation NumberOfParticipants', 16, 1)
@@ -465,7 +465,7 @@ if object_id('checkThatThereIsNoDeleteOnWorkshopReservationAfterPayment') is not
 go
 create trigger checkThatThereIsNoDeleteOnWorkshopReservationAfterPayment on WorkshopReservation after delete as begin
 	if (select r.Paid from Reservation as r
-			inner join DayReservation dr on r.ReservationID = dr.ReservationID
+			inner join DayReservation as dr on r.ReservationID = dr.ReservationID
 			inner join deleted as d on dr.DayReservationID = d.DayReservationID) != 0 begin
 		raiserror('Attempting to modify a reservation that was already paid for', 16, 1)
 		rollback transaction
