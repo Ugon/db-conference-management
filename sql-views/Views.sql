@@ -514,5 +514,94 @@ RETURN
 )
 GO
 
+IF OBJECT_ID('mostPopularWorkshops') IS NOT NULL
+drop view mostPopularWorkshops
+GO
+
+CREATE VIEW mostPopularWorkshops
+AS
+	select top 20 Name, (
+		select count(NumberOfParticipants) 
+		from WorkshopReservation WR
+		inner join WorkshopInstance WI on WR.WorkshopInstanceID = WI.WorkshopInstanceID
+		inner join WorkshopType WT2 on WT2.WorkshopTypeID = WI.WorkshopTypeID
+			and WT2.Name = WT.Name
+	) as 'Number of participants'
+	from WorkshopType WT
+	order by 2 DESC
+GO
+
+IF OBJECT_ID('unfilledDayReservations') IS NOT NULL
+drop view unfilledDayReservations
+GO
+
+CREATE VIEW unfilledDayReservations
+AS
+	select CompanyName,Mail, Phone, CF.Name, sum(NumberOfParticipants)-
+	(
+		select count(*) from DayReservationDetails DRD 
+		inner join DayReservation DR2 on DR2.DayReservationID = DRD.DayReservationID
+		where ReservationID = R.ReservationID
+	) as 'Slots to fill', sum(NumberOfStudentDiscounts)-
+	(
+		select count(*) from DayReservationDetails DRD 
+		inner join DayReservation DR2 on DR2.DayReservationID = DRD.DayReservationID
+		where ReservationID = R.ReservationID and Student = 1
+	) as 'Student slots to fill'
+	from Company CP
+	inner join Client C on C.ClientID = CP.ClientID
+	inner join Reservation R on R.ClientID = C.ClientID
+	inner join DayReservation DR on DR.ReservationID = R.ReservationID
+	inner join Day D on D.DayID = DR.DayID
+	inner join Conference CF on CF.ConferenceID = D.ConferenceID
+	group by CompanyName,Mail, Phone, CF.Name, R.ReservationID
+	having sum(NumberOfParticipants)-
+	(
+		select count(*) from DayReservationDetails DRD 
+		inner join DayReservation DR2 on DR2.DayReservationID = DRD.DayReservationID
+		where ReservationID = R.ReservationID
+	) > 0
+GO
+
+
+IF OBJECT_ID('unfilledWorkshopReservations') IS NOT NULL
+drop view unfilledWorkshopReservations
+GO
+
+CREATE VIEW unfilledWorkshopReservations
+AS
+	select CompanyName, Mail, Phone, CF.Name as 'Conference Name', WT.Name as 'Workshop Name', sum(WR.NumberOfParticipants)-
+	(
+		select count(*) from WorkshopReservationDetails WRD
+		inner join WorkshopReservation WR2 on WR2.WorkshopReservationID = WRD.WorkshopReservationID
+		where WR2.WorkshopReservationID = WR.WorkshopReservationID 
+	) as 'Slots to fill',
+	sum(WR.NumberOfStudentDiscounts)-
+	(
+		select count(*) from WorkshopReservationDetails WRD
+		inner join WorkshopReservation WR2 on WR2.WorkshopReservationID = WRD.WorkshopReservationID
+		inner join DayReservation DR2 on DR2.DayReservationID = WR2.DayReservationID
+		inner join DayReservationDetails DRD2 on DRD2.DayReservationID = DR2.DayReservationID
+		inner join Reservation R2 on R2.ReservationID = DR2.ReservationID
+		where WR2.WorkshopReservationID = WR.WorkshopReservationID 
+		and Student = 1 and R.ReservationID = R2.ReservationID
+	) as 'Student slots to fill'
+	from Company CP
+	inner join Client C on C.ClientID = CP.ClientID
+	inner join Reservation R on R.ClientID = C.ClientID
+	inner join DayReservation DR on DR.ReservationID = R.ReservationID
+	inner join Day D on D.DayID = DR.DayID
+	inner join Conference CF on CF.ConferenceID = D.ConferenceID
+	inner join WorkshopReservation WR on WR.DayReservationID = DR.DayReservationID
+	inner join WorkshopInstance WI on WI.WorkshopInstanceID = WR.WorkshopInstanceID and WI.DayID = D.DayID
+	inner join WorkshopType WT on WT.WorkshopTypeID = WI.WorkshopTypeID
+	group by CompanyName,  Mail, Phone, CF.Name, WT.Name, WR.WorkshopReservationID, R.ReservationID
+	having sum(WR.NumberOfParticipants)-(select count(*) from WorkshopReservationDetails WRD
+		inner join WorkshopReservation WR2 on WR2.WorkshopReservationID = WRD.WorkshopReservationID
+		where WR2.WorkshopReservationID = WR.WorkshopReservationID ) > 0
+GO
+
+
+
 
 
