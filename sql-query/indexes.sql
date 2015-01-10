@@ -38,5 +38,3 @@ create index IX_Day_ConferenceID on [Day](ConferenceID)
 create index IX_WorkshopInstance_DayID on WorkshopInstance(DayID)
 create index IX_WorkshopInstance_WorkshopTypeID on WorkshopInstance(WorkshopTypeID)
 create index IX_EarlyBirdDiscount_ConferenceID on EarlyBirdDiscount(ConferenceID)
-
-select * from sys.indexes order by 2
