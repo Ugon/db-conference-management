@@ -767,7 +767,7 @@ BEGIN
 	declare @personId int;
 	declare @dayReservationDetailsId int;
 
-	set @personId = (select PersonId from Person where Mail = mail)
+	set @personId = (select PersonId from Person where Mail = @mail)
 	set @dayReservationDetailsId = (select DayReservationDetailsID from DayReservationDetails
 		where PersonId = @personId)
 
