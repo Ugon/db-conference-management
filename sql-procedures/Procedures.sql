@@ -696,11 +696,11 @@ END
 GO
 
 
-IF OBJECT_ID('changeNumbersWorkshop') IS NOT NULL 
-DROP PROC changeNumbersWorkshop
+IF OBJECT_ID('changeWorkshopReservationNumbers') IS NOT NULL 
+DROP PROC changeWorkshopReservationNumbers
 GO
 
-CREATE procedure changeNumbersWorkshop
+CREATE procedure changeWorkshopReservationNumbers
 	@reservationId int,
 	@conferenceName varchar(200),
 	@workshopName varchar(200),
