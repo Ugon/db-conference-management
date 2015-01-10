@@ -330,7 +330,7 @@ go
 if object_id('checkThatWorkshopNumberOfParticipantsIsNotGreaterThanDayNumberOfParticipants') is not null drop trigger checkThatWorkshopNumberOfParticipantsIsNotGreaterThanDayNumberOfParticipants
 go
 create trigger checkThatWorkshopNumberOfParticipantsIsNotGreaterThanDayNumberOfParticipants on WorkshopReservation after insert as
-	if (select NumberOfParticipants from inserted) > (select dr.NumberOfParticipants from inserted as i inner join DayReservation as dr on i.DayReservationID = i.DayReservationID)
+	if (select NumberOfParticipants from inserted) > (select dr.NumberOfParticipants from inserted as i inner join DayReservation as dr on i.DayReservationID = dr.DayReservationID)
 	begin
 		raiserror('WorkshopReservation NumberOfParticipants is greater than DayReservation NumberOfParticipants', 16, 1)
 		rollback transaction
@@ -341,7 +341,7 @@ go
 if object_id('checkThatWorkshopNumberOfStudentDiscountsisNotGreaterThanDayNumberOfStudentDiscounts') is not null drop trigger checkThatWorkshopNumberOfStudentDiscountsisNotGreaterThanDayNumberOfStudentDiscounts
 go
 create trigger checkThatWorkshopNumberOfStudentDiscountsisNotGreaterThanDayNumberOfStudentDiscounts on WorkshopReservation after insert as
-	if (select NumberOfStudentDiscounts from inserted) > (select dr.NumberOfStudentDiscounts from inserted as i inner join DayReservation as dr on i.DayReservationID = i.DayReservationID)
+	if (select NumberOfStudentDiscounts from inserted) > (select dr.NumberOfStudentDiscounts from inserted as i inner join DayReservation as dr on i.DayReservationID = dr.DayReservationID)
 	begin
 		raiserror('WorkshopReservation NumberOfStudentDiscount is greater than DayReservation NumberOfStudentDiscount', 16, 1)
 		rollback transaction
@@ -452,7 +452,7 @@ if object_id('checkThatThereIsNoInsertUpdateOnWorkshopReservationAfterPayment') 
 go
 create trigger checkThatThereIsNoInsertUpdateOnWorkshopReservationAfterPayment on WorkshopReservation after insert, update as begin
 	if (select r.Paid from Reservation as r
-			inner join DayReservation dr on r.ReservationID = dr.ReservationID
+			inner join DayReservation as dr on r.ReservationID = dr.ReservationID
 			inner join inserted as i on dr.DayReservationID = i.DayReservationID) != 0 begin
 		raiserror('Attempting to modify a reservation that was already paid for', 16, 1)
 		rollback transaction
