@@ -401,7 +401,7 @@ go
 
 if object_id('checkThatClientIDIsNotAlreadyTakenByPersonWhenAddingCompany') is not null drop trigger checkThatClientIDIsNotAlreadyTakenByPersonWhenAddingCompany
 go
-create trigger checkThatClientIDIsNotAlreadyTakenByPersonWhenAddingCompany on PersonClient after insert as
+create trigger checkThatClientIDIsNotAlreadyTakenByPersonWhenAddingCompany on Company after insert as
 	if exists (select * from PersonClient as pc inner join inserted as i on i.ClientID = pc.ClientID)
 	begin
 		raiserror('ClientID already exists in PersonClient', 16, 1)
