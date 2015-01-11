@@ -547,12 +547,13 @@ AS
 	(
 		select count(*) from DayReservationDetails DRD 
 		inner join DayReservation DR2 on DR2.DayReservationID = DRD.DayReservationID
-		where DR2.ReservationID = R.ReservationID
+		where DR2.DayReservationID = DR.DayReservationID
 	) as 'NumberOfParticipantsToFill', sum(NumberOfStudentDiscounts)-
 	(
 		select count(*) from DayReservationDetails DRD 
 		inner join DayReservation DR2 on DR2.DayReservationID = DRD.DayReservationID
-		where DR2.ReservationID = R.ReservationID and Student = 1
+		where DR2.DayReservationID = DR.DayReservationID
+		and Student = 1
 	) as 'NumberOfStudentDiscountsToFill'
 	from Company CP
 	inner join Client C on C.ClientID = CP.ClientID
@@ -561,12 +562,12 @@ AS
 	inner join Day D on D.DayID = DR.DayID
 	inner join Conference CF on CF.ConferenceID = D.ConferenceID
 	where R.Cancelled = 0
-	group by CompanyName,Mail, Phone, CF.Name, R.ReservationID, D.Date
+	group by CompanyName,Mail, Phone, CF.Name, R.ReservationID, D.Date, DR.DayReservationID
 	having sum(NumberOfParticipants)-
 	(
 		select count(*) from DayReservationDetails DRD 
 		inner join DayReservation DR2 on DR2.DayReservationID = DRD.DayReservationID
-		where ReservationID = R.ReservationID
+		where DR2.DayReservationID = DR.DayReservationID
 	) > 0
 GO
 
@@ -583,7 +584,7 @@ AS
 		select count(*) from WorkshopReservationDetails WRD
 		inner join WorkshopReservation WR2 on WR2.WorkshopReservationID = WRD.WorkshopReservationID
 		where WR2.WorkshopReservationID = WR.WorkshopReservationID 
-	) as 'Slots to fill',
+	) as 'NumberOfParticipantsToFill',
 	sum(WR.NumberOfStudentDiscounts)-
 	(
 		select count(*) from WorkshopReservationDetails WRD
@@ -592,8 +593,8 @@ AS
 		inner join DayReservationDetails DRD2 on DRD2.DayReservationID = DR2.DayReservationID
 		inner join Reservation R2 on R2.ReservationID = DR2.ReservationID
 		where WR2.WorkshopReservationID = WR.WorkshopReservationID 
-		and Student = 1 and R.ReservationID = R2.ReservationID
-	) as 'Student slots to fill'
+		and Student = 1
+	) as 'NumberOfStudentDiscountsToFill'
 	from Company CP
 	inner join Client C on C.ClientID = CP.ClientID
 	inner join Reservation R on R.ClientID = C.ClientID
@@ -606,9 +607,12 @@ AS
 	where R.Cancelled = 0
 	group by CompanyName,  Mail, Phone, CF.Name, WT.Name, R.ReservationID,
 	WR.WorkshopReservationID, D.Date, WI.StartTime
-	having sum(WR.NumberOfParticipants)-(select count(*) from WorkshopReservationDetails WRD
+	having sum(WR.NumberOfParticipants)-
+	(
+		select count(*) from WorkshopReservationDetails WRD
 		inner join WorkshopReservation WR2 on WR2.WorkshopReservationID = WRD.WorkshopReservationID
-		where WR2.WorkshopReservationID = WR.WorkshopReservationID ) > 0
+		where WR2.WorkshopReservationID = WR.WorkshopReservationID 
+	) > 0
 GO
 
 
