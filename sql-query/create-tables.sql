@@ -34,10 +34,10 @@ go
 create table [Address](
 	AddressID int identity(1,1) primary key,
 
-	Street varchar(50) not null,
+	Street varchar(200) not null,
 	PostalCode varchar(6) not null check(PostalCode LIKE '[0-9][0-9]-[0-9][0-9][0-9]'),
-	City varchar(50) not null,
-	Country varchar(50) not null
+	City varchar(200) not null,
+	Country varchar(200) not null
 
 	constraint chk_address_duplication unique(Street, PostalCode, City, Country)
 )
@@ -47,10 +47,10 @@ create table [Address](
 create table Person(
 	PersonID int identity(1,1) primary key,
 
-	FirstName varchar(50) not null,
-	LastName varchar(50) not null,
-	IndexNumber varchar(6) unique default null check (IndexNumber LIKE '[0-9][0-9][0-9][0-9][0-9][0-9]'),
-	Mail varchar(50) unique not null check (Mail LIKE '%_@_%._%')
+	FirstName varchar(200) not null,
+	LastName varchar(200) not null,
+	IndexNumber varchar(6) default null check (IndexNumber LIKE '[0-9][0-9][0-9][0-9][0-9][0-9]'), --TODO: UNIQUE NULL WTF
+	Mail varchar(200) unique not null check (Mail LIKE '%_@_%._%')
 )
 
 
@@ -59,8 +59,8 @@ create table Client(
 	ClientID int identity(1,1) primary key,
 	AddressID int foreign key references Address(AddressID) not null,
 
-	[Login] varchar(50) unique not null,
-	[Password] varchar(50) not null,
+	[Login] varchar(200) unique not null,
+	[Password] varchar(200) not null,
 	Phone varchar(11) unique not null check (Phone LIKE '[0-9][0-9][0-9] [0-9][0-9][0-9] [0-9][0-9][0-9]'),
 	BankAccount varchar(32) unique not null check (BankAccount LIKE '[0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9]'),
 	PastReservationCount int not null check(PastReservationCount >= 0) default 0,
@@ -82,8 +82,8 @@ create table Company(
 	CompanyID int identity(1,1) primary key,
 	ClientID int unique not null foreign key references Client(ClientID),
 	
-	CompanyName varchar(50) unique not null,
-	Mail varchar(50) unique not null check (Mail LIKE '%_@_%._%')
+	CompanyName varchar(200) unique not null,
+	Mail varchar(200) unique not null check (Mail LIKE '%_@_%._%')
 )
 
 
@@ -92,8 +92,8 @@ create table Conference(
 	ConferenceID int identity(1,1) primary key,
 	AddressID int foreign key references Address(AddressID) not null,
 
-	Name varchar(50) unique not null,
-	Venue varchar(50) not null,
+	Name varchar(200) unique not null,
+	Venue varchar(200) not null,
 
 	DayPrice money not null check(DayPrice >= 0),
 	StudentDiscount float not null check(StudentDiscount >= 0 and StudentDiscount <= 1) default 0
@@ -112,8 +112,6 @@ create table EarlyBirdDiscount(
 	constraint chk_EarlyBirdDiscount_StartTime_EndTime check(StartTime < EndTime)
 )
 
-
-
 create table [Day](
 	DayID int identity(1,1) primary key,
 	ConferenceID int not null foreign key references Conference(ConferenceID),
@@ -131,7 +129,7 @@ create table [Day](
 create table WorkshopType(
 	WorkshopTypeID int identity(1,1) primary key,
 	
-	Name varchar(50) unique not null,
+	Name varchar(200) unique not null,
 	Capacity int not null check(Capacity >= 0),
 	Price money not null check(Price >= 0)
 )
@@ -145,7 +143,7 @@ create table WorkshopInstance(
 	
 	StartTime time not null,
 	EndTime time not null,
-	Location varchar(50) not null,
+	Location varchar(200) not null,
 	SlotsFilled int not null check(SlotsFilled >= 0) default 0,
 
 	constraint chk_WorkshopType_StartTime_EndTime check(EndTime > StartTime),
@@ -159,7 +157,7 @@ create table Reservation(
 	ClientID int not null foreign key references Client(ClientID),
 
 	ReservationTime datetime not null default GETDATE(),
-	Price money not null check(Price >= 0),
+	Price money not null check(Price >= 0) default 0,
 	Paid money not null check(Paid >= 0) default 0,
 	Cancelled bit not null default 0,
 
