@@ -547,7 +547,7 @@ AS
 	(
 		select count(*) from DayReservationDetails DRD 
 		inner join DayReservation DR2 on DR2.DayReservationID = DRD.DayReservationID
-		where ReservationID = R.ReservationID
+		where DR2.ReservationID = R.ReservationID
 	) as 'NumberOfParticipantsToFill', sum(NumberOfStudentDiscounts)-
 	(
 		select count(*) from DayReservationDetails DRD 
