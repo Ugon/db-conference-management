@@ -28,7 +28,7 @@ GRANT SELECT ON [dbo].[PersonClients] TO organizer;
 GRANT SELECT ON [dbo].[CompanyClients] TO organizer;
 GRANT SELECT ON [dbo].[MoneySpentStatisticsForCompanyClients] TO organizer;
 GRANT SELECT ON [dbo].[MoneySpentStatisticsForPersonClients] TO organizer;
-GRANT SELECT ON [dbo].[unfilledDayReservations] TO organizer; --
+GRANT SELECT ON [dbo].[unfilledDayReservations] TO organizer;
 GRANT SELECT ON [dbo].[unfilledWorkshopReservations] TO organizer;
 
 GRANT SELECT ON [dbo].[ConferenceParticipants] TO organizer;
@@ -69,7 +69,6 @@ GO
 
 CREATE ROLE companyClient;
 
-GRANT EXECUTE ON [dbo].[addClientCompany] TO companyClient;--??
 GRANT EXECUTE ON [dbo].[addNewReservation] TO companyClient;
 GRANT EXECUTE ON [dbo].[addPayment] TO companyClient;
 GRANT EXECUTE ON [dbo].[addWorkshopReservationDetailsForCompany] TO companyClient;
