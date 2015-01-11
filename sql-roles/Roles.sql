@@ -47,7 +47,6 @@ CREATE ROLE personClient;
 
 GRANT EXECUTE ON [dbo].[addNewReservation] TO personClient;
 GRANT EXECUTE ON [dbo].[addPayment] TO personClient;
-GRANT EXECUTE ON [dbo].[addClientPerson] TO personClient;
 GRANT EXECUTE ON [dbo].[addDayReservationForPerson] TO personClient;
 GRANT EXECUTE ON [dbo].[addWorkshopReservationForPerson] TO personClient;
 GRANT EXECUTE ON [dbo].[cancelReservation] TO personClient;
@@ -86,7 +85,6 @@ GRANT EXECUTE ON [dbo].[changeWorkshopReservationNumbers] TO companyClient;
 GRANT EXECUTE ON [dbo].[changeParticipantsStudentStatus] TO companyClient;
 GRANT EXECUTE ON [dbo].[removeParticipantDay] TO companyClient;
 GRANT EXECUTE ON [dbo].[removeParticipantWorkshop] TO companyClient;
-GRANT EXECUTE ON [dbo].[removeParticipantDay] TO companyClient;
 GRANT EXECUTE ON [dbo].[cancelDayReservation] TO companyClient
 GRANT EXECUTE ON [dbo].[cancelReservation] TO companyClient
 GRANT EXECUTE ON [dbo].[cancelWorkshopReservation] TO companyClient
