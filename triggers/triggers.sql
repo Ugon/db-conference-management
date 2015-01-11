@@ -528,10 +528,11 @@ if object_id('checkWorkshopReservationNumberOfParticipantsAfterUpdatingWorkshopR
 go
 create trigger checkWorkshopReservationNumberOfParticipantsAfterUpdatingWorkshopReservation on WorkshopReservation after update as begin
 	if(select NumberOfParticipants from inserted) < (select NumberOfParticipants from deleted) begin
-		if (select count(*) from WorkshopReservationDetails as wrd inner join inserted as i on i.DayReservationID = wrd.WorkshopReservationID) > (select NumberOfParticipants from inserted)
+		if (select count(*) from WorkshopReservationDetails as wrd inner join inserted as i on i.DayReservationID = wrd.WorkshopReservationID) > (select NumberOfParticipants from inserted) begin
 			raiserror('Insterted NumberOfParticipants can not accomodate all currently enlisted participants', 16, 1)
 			rollback transaction
 			return
+		end
 	end
 end
 go
@@ -543,10 +544,11 @@ create trigger checkWorkshopReservationNumberOfStudentsAfterUpdatingWorkshopRese
 		if (select count(*) from WorkshopReservationDetails as wrd
 			inner join inserted as i on i.WorkshopReservationID = wrd.WorkshopReservationID 
 			inner join DayReservationDetails as drd on drd.DayReservationDetailsID = wrd.DayReservationDetailsID
-			where drd.Student = 1) > (select NumberOfStudentDiscounts from inserted)
-			raiserror('Insterted NumberOfStudentDiscounts can not accomodate all currently enlisted students', 16, 1)
-			rollback transaction
-			return
+			where drd.Student = 1) > (select NumberOfStudentDiscounts from inserted) begin
+				raiserror('Insterted NumberOfStudentDiscounts can not accomodate all currently enlisted students', 16, 1)
+				rollback transaction
+				return
+		end
 	end
 end
 go
