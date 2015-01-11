@@ -342,31 +342,33 @@ create trigger checkThatPersonWorkshopReservationsDoNotOverlap on WorkshopReserv
 end
 go
 
-if object_id('checkThatWorkshopNumberOfParticipantsIsNotGreaterThanDayNumberOfParticipants') is not null drop trigger checkThatWorkshopNumberOfParticipantsIsNotGreaterThanDayNumberOfParticipants
+if object_id('checkThatWorkshopNumberOfParticipantsIsNotGreaterThatDayNumberOfParticipants') is not null drop trigger checkThatWorkshopNumberOfParticipantsIsNotGreaterThatDayNumberOfParticipants
 go
-create trigger checkThatWorkshopNumberOfParticipantsIsNotGreaterThatDayNumberOfParticipants on WorkshopReservation after insert as
+create trigger checkThatWorkshopNumberOfParticipantsIsNotGreaterThatDayNumberOfParticipants on WorkshopReservation after insert as begin
 	if (select NumberOfParticipants from inserted) > (select dr.NumberOfParticipants from inserted as i inner join DayReservation as dr on i.DayReservationID = dr.DayReservationID)
 	begin
 		raiserror('WorkshopReservation NumberOfParticipants is greater than DayReservation NumberOfParticipants', 16, 1)
 		rollback transaction
 		return
 	end
+end
 go
 
 if object_id('checkThatWorkshopNumberOfStudentDiscountsisNotGreaterThanDayNumberOfStudentDiscounts') is not null drop trigger checkThatWorkshopNumberOfStudentDiscountsisNotGreaterThanDayNumberOfStudentDiscounts
 go
-create trigger checkThatWorkshopNumberOfStudentDiscountsisNotGreaterThanDayNumberOfStudentDiscounts on WorkshopReservation after insert as
+create trigger checkThatWorkshopNumberOfStudentDiscountsisNotGreaterThanDayNumberOfStudentDiscounts on WorkshopReservation after insert as begin
 	if (select NumberOfStudentDiscounts from inserted) > (select dr.NumberOfStudentDiscounts from inserted as i inner join DayReservation as dr on i.DayReservationID = dr.DayReservationID)
 	begin
 		raiserror('WorkshopReservation NumberOfStudentDiscount is greater than DayReservation NumberOfStudentDiscount', 16, 1)
 		rollback transaction
 		return
 	end
+end
 go
 
 if object_id('checkThatDayNumberOfStudentDiscountsIsNotLesserThanActualNumberOfStudentDayReservationDetails') is not null drop trigger checkThatDayNumberOfStudentDiscountsIsNotLesserThanActualNumberOfStudentDayReservationDetails
 go
-create trigger checkThatDayNumberOfStudentDiscountsIsNotLesserThanActualNumberOfStudentDayReservationDetails on DayReservationDetails after insert, update as
+create trigger checkThatDayNumberOfStudentDiscountsIsNotLesserThanActualNumberOfStudentDayReservationDetails on DayReservationDetails after insert, update as begin
 	if(select count(*) from DayReservationDetails as drd inner join inserted as i on i.DayReservationID = drd.DayReservationID where drd.Student = 1)
 		> (select NumberOfStudentDiscounts from DayReservation as dr inner join inserted as i on dr.DayReservationID = i.DayReservationID)
 		begin
@@ -374,11 +376,12 @@ create trigger checkThatDayNumberOfStudentDiscountsIsNotLesserThanActualNumberOf
 		rollback transaction
 		return
 	end
+end
 go
 
 if object_id('checkThatWorkshopNumberOfStudentDiscountsIsNotLesserThanActualNumberOfStudentWorkshopReservationDetails') is not null drop trigger checkThatWorkshopNumberOfStudentDiscountsIsNotLesserThanActualNumberOfStudentWorkshopReservationDetails
 go
-create trigger checkThatWorkshopNumberOfStudentDiscountsIsNotLesserThanActualNumberOfStudentWorkshopReservationDetails on WorkshopReservationDetails after insert, update as
+create trigger checkThatWorkshopNumberOfStudentDiscountsIsNotLesserThanActualNumberOfStudentWorkshopReservationDetails on WorkshopReservationDetails after insert, update as begin
 	if(select count(*) from WorkshopReservationDetails as wrd 
 			inner join inserted as i on i.WorkshopReservationID = wrd.WorkshopReservationID
 			inner join WorkshopReservation as wr on wrd.WorkshopReservationID = wr.WorkshopReservationID
@@ -390,44 +393,48 @@ create trigger checkThatWorkshopNumberOfStudentDiscountsIsNotLesserThanActualNum
 		rollback transaction
 		return
 	end
+end
 go
 
 if object_id('checkThatPersonRegisteredAsStudentHasIndexNumber') is not null drop trigger checkThatPersonRegisteredAsStudentHasIndexNumber
 go
-create trigger checkThatPersonRegisteredAsStudentHasIndexNumber on DayReservationDetails after insert, update as
+create trigger checkThatPersonRegisteredAsStudentHasIndexNumber on DayReservationDetails after insert, update as begin
 	if (select Student from inserted) = 1 and (select p.IndexNumber from Person as p inner join inserted as i on p.PersonID = i.PersonID) is null
 	begin
 		raiserror('Person without IndexNumber can not be registered as student', 16, 1)
 		rollback transaction
 		return
 	end
+end
 go
 
 if object_id('checkThatClientIDIsNotAlreadyTakenByCompanyWhenAddingPersonClient') is not null drop trigger checkThatClientIDIsNotAlreadyTakenByCompanyWhenAddingPersonClient
 go
-create trigger checkThatClientIDIsNotAlreadyTakenByCompanyWhenAddingPersonClient on PersonClient after insert as
+create trigger checkThatClientIDIsNotAlreadyTakenByCompanyWhenAddingPersonClient on PersonClient after insert as begin
 	if exists (select * from Company as c inner join inserted as i on i.ClientID = c.ClientID)
 	begin
 		raiserror('ClientID already exists in Company', 16, 1)
 		rollback transaction
 		return
 	end
+end
 go
 
 if object_id('checkThatClientIDIsNotAlreadyTakenByPersonWhenAddingCompany') is not null drop trigger checkThatClientIDIsNotAlreadyTakenByPersonWhenAddingCompany
 go
-create trigger checkThatClientIDIsNotAlreadyTakenByPersonWhenAddingCompany on Company after insert as
+create trigger checkThatClientIDIsNotAlreadyTakenByPersonWhenAddingCompany on Company after insert as begin
 	if exists (select * from PersonClient as pc inner join inserted as i on i.ClientID = pc.ClientID)
 	begin
 		raiserror('ClientID already exists in PersonClient', 16, 1)
 		rollback transaction
 		return
 	end
+end
 go
 
 if object_id('checkThatEarlyBirdsDiscountsDoNotOverlap') is not null drop trigger checkThatEarlyBirdsDiscountsDoNotOverlap
 go
-create trigger checkThatEarlyBirdsDiscountsDoNotOverlap on EarlyBirdDiscount after insert, update as
+create trigger checkThatEarlyBirdsDiscountsDoNotOverlap on EarlyBirdDiscount after insert, update as begin
 	declare @EarlyBirdDiscounts table(EarlyBirdDiscountID int primary key, StartTime time, EndTime time)
 	insert into @EarlyBirdDiscounts (EarlyBirdDiscountID, StartTime, EndTime)
 		select ebd.EarlyBirdDiscountID, ebd.StartTime, ebd.EndTime from EarlyBirdDiscount as ebd
@@ -439,6 +446,7 @@ create trigger checkThatEarlyBirdsDiscountsDoNotOverlap on EarlyBirdDiscount aft
 		rollback transaction
 		return
 	end
+end
 go
 
 if object_id('checkThatThereIsNoInsertOrUpdateOnDayReservationAfterPayment') is not null drop trigger checkThatThereIsNoInsertOrUpdateOnDayReservationAfterPayment
@@ -489,26 +497,29 @@ create trigger checkThatThereIsNoDeleteOnWorkshopReservationAfterPayment on Work
 end
 go
 
+
 if object_id('checkDayReservationNumberOfParticipantsAfterUpdatingDayReservation') is not null drop trigger checkDayReservationNumberOfParticipantsAfterUpdatingDayReservation
 go
 create trigger checkDayReservationNumberOfParticipantsAfterUpdatingDayReservation on DayReservation after update as begin
-	if(select NumberOfParticipants from inserted) < (select NumberOfParticipants from deleted) begin
-		if (select count(*) from DayReservationDetails as drd inner join inserted as i on i.DayReservationID = drd.DayReservationID) > (select NumberOfParticipants from inserted)
+	if (select NumberOfParticipants from inserted) < (select NumberOfParticipants from deleted) begin
+		if (select count(*) from DayReservationDetails as drd inner join inserted as i on i.DayReservationID = drd.DayReservationID) > (select NumberOfParticipants from inserted) begin
 			raiserror('Insterted NumberOfParticipants can not accomodate all currently enlisted participants', 16, 1)
 			rollback transaction
 			return
+		end
 	end
 end
 go
 
-if object_id('checkDayReservationNumberOfStudentsAfterUpdatingWorkshopReservation') is not null drop trigger checkDayReservationNumberOfStudentsAfterUpdatingWorkshopReservation
+if object_id('checkDayReservationNumberOfStudentsAfterUpdatingDayReservation') is not null drop trigger checkDayReservationNumberOfStudentsAfterUpdatingDayReservation
 go
-create trigger checkDayReservationNumberOfStudentsAfterUpdatingWorkshopReservation on WorkshopReservation after update as begin
+create trigger checkDayReservationNumberOfStudentsAfterUpdatingDayReservation on DayReservation after update as begin
 	if(select NumberOfStudentDiscounts from inserted) < (select NumberOfStudentDiscounts from deleted) begin
-		if (select count(*) from DayReservationDetails as drd inner join inserted as i on i.DayReservationID = drd.DayReservationID where drd.Student = 1) > (select NumberOfStudentDiscounts from inserted)
+		if (select count(*) from DayReservationDetails as drd inner join inserted as i on i.DayReservationID = drd.DayReservationID where drd.Student = 1) > (select NumberOfStudentDiscounts from inserted) begin
 			raiserror('Insterted NumberOfStudentDiscounts can not accomodate all currently enlisted students', 16, 1)
 			rollback transaction
 			return
+		end
 	end
 end
 go
@@ -517,10 +528,11 @@ if object_id('checkWorkshopReservationNumberOfParticipantsAfterUpdatingWorkshopR
 go
 create trigger checkWorkshopReservationNumberOfParticipantsAfterUpdatingWorkshopReservation on WorkshopReservation after update as begin
 	if(select NumberOfParticipants from inserted) < (select NumberOfParticipants from deleted) begin
-		if (select count(*) from WorkshopReservationDetails as wrd inner join inserted as i on i.DayReservationID = wrd.WorkshopReservationID) > (select NumberOfParticipants from inserted)
+		if (select count(*) from WorkshopReservationDetails as wrd inner join inserted as i on i.DayReservationID = wrd.WorkshopReservationID) > (select NumberOfParticipants from inserted) begin
 			raiserror('Insterted NumberOfParticipants can not accomodate all currently enlisted participants', 16, 1)
 			rollback transaction
 			return
+		end
 	end
 end
 go
@@ -532,10 +544,11 @@ create trigger checkWorkshopReservationNumberOfStudentsAfterUpdatingWorkshopRese
 		if (select count(*) from WorkshopReservationDetails as wrd
 			inner join inserted as i on i.WorkshopReservationID = wrd.WorkshopReservationID 
 			inner join DayReservationDetails as drd on drd.DayReservationDetailsID = wrd.DayReservationDetailsID
-			where drd.Student = 1) > (select NumberOfStudentDiscounts from inserted)
-			raiserror('Insterted NumberOfStudentDiscounts can not accomodate all currently enlisted students', 16, 1)
-			rollback transaction
-			return
+			where drd.Student = 1) > (select NumberOfStudentDiscounts from inserted) begin
+				raiserror('Insterted NumberOfStudentDiscounts can not accomodate all currently enlisted students', 16, 1)
+				rollback transaction
+				return
+		end
 	end
 end
 go

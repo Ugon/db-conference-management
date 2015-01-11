@@ -572,7 +572,7 @@ GO
 
 CREATE PROCEDURE changeParticipantsStudentStatus
 	@reservationId int,
-	@conferenceName int,
+	@conferenceName varchar(200),
 	@date date,
 	@mail varchar(200)
 AS
