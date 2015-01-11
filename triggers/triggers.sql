@@ -42,10 +42,7 @@ create function calculateDayPrice(@DayID int , @ReservationTime datetime, @Stude
 	set @DayPrice = (select c.DayPrice from Conference as c 
 		inner join [Day] as d on c.ConferenceID = d.ConferenceID
 		where d.DayID = @DayID)
-	if @StudentDiscount <= @EarlyBirdDiscount
-		set @PriceAfterDiscount = @DayPrice * (1 - @EarlyBirdDiscount)
-	else 
-		set @PriceAfterDiscount = @DayPrice * (1 - @StudentDiscount)
+	set @PriceAfterDiscount = @DayPrice * (1 - @EarlyBirdDiscount) * (1 - @StudentDiscount)
 	return @PriceAfterDiscount
 end
 go
@@ -247,7 +244,7 @@ go
 if object_id('calculateWorkshopSlotsFilledAfterDeletingWorkshopReservation') is not null drop trigger calculateWorkshopSlotsFilledAfterDeletingWorkshopReservation
 go
 --SlotsFilled <= Capacity enforced by constraint
-create trigger calculateWorkshopSlotsFilledAfterDeletingWorkshopReservation on WorkshopReservation after insert as begin
+create trigger calculateWorkshopSlotsFilledAfterDeletingWorkshopReservation on WorkshopReservation after delete as begin
 	declare @WorkshopInstanceID int = (select WorkshopInstanceID from deleted)
 	declare @NumberOfParticipants int = (select NumberOfParticipants from deleted)
 	update WorkshopInstance set SlotsFilled -= @NumberOfParticipants where WorkshopInstanceID = @WorkshopInstanceID
@@ -345,7 +342,7 @@ create trigger checkThatPersonWorkshopReservationsDoNotOverlap on WorkshopReserv
 end
 go
 
-if object_id('checkThatWorkshopNumberOfParticipantsIsNotGreaterThatDayNumberOfParticipants') is not null drop trigger checkThatWorkshopNumberOfParticipantsIsNotGreaterThatDayNumberOfParticipants
+if object_id('checkThatWorkshopNumberOfParticipantsIsNotGreaterThanDayNumberOfParticipants') is not null drop trigger checkThatWorkshopNumberOfParticipantsIsNotGreaterThanDayNumberOfParticipants
 go
 create trigger checkThatWorkshopNumberOfParticipantsIsNotGreaterThatDayNumberOfParticipants on WorkshopReservation after insert as
 	if (select NumberOfParticipants from inserted) > (select dr.NumberOfParticipants from inserted as i inner join DayReservation as dr on i.DayReservationID = dr.DayReservationID)
@@ -458,7 +455,7 @@ go
 if object_id('checkThatThereIsNoDeleteOnDayReservationAfterPayment') is not null drop trigger checkThatThereIsNoDeleteOnDayReservationAfterPayment
 go
 create trigger checkThatThereIsNoDeleteOnDayReservationAfterPayment on DayReservation after delete as begin
-	if (select r.Paid from Reservation as r inner join deeted as d on r.ReservationID = d.ReservationID) != 0 begin
+	if (select r.Paid from Reservation as r inner join deleted as d on r.ReservationID = d.ReservationID) != 0 begin
 		raiserror('Attempting to modify a reservation that was already paid for', 16, 1)
 		rollback transaction
 		return
@@ -488,6 +485,57 @@ create trigger checkThatThereIsNoDeleteOnWorkshopReservationAfterPayment on Work
 		raiserror('Attempting to modify a reservation that was already paid for', 16, 1)
 		rollback transaction
 		return
+	end
+end
+go
+
+if object_id('checkDayReservationNumberOfParticipantsAfterUpdatingDayReservation') is not null drop trigger checkDayReservationNumberOfParticipantsAfterUpdatingDayReservation
+go
+create trigger checkDayReservationNumberOfParticipantsAfterUpdatingDayReservation on DayReservation after update as begin
+	if(select NumberOfParticipants from inserted) < (select NumberOfParticipants from deleted) begin
+		if (select count(*) from DayReservationDetails as drd inner join inserted as i on i.DayReservationID = drd.DayReservationID) > (select NumberOfParticipants from inserted)
+			raiserror('Insterted NumberOfParticipants can not accomodate all currently enlisted participants', 16, 1)
+			rollback transaction
+			return
+	end
+end
+go
+
+if object_id('checkDayReservationNumberOfStudentsAfterUpdatingWorkshopReservation') is not null drop trigger checkDayReservationNumberOfStudentsAfterUpdatingWorkshopReservation
+go
+create trigger checkDayReservationNumberOfStudentsAfterUpdatingWorkshopReservation on WorkshopReservation after update as begin
+	if(select NumberOfStudentDiscounts from inserted) < (select NumberOfStudentDiscounts from deleted) begin
+		if (select count(*) from DayReservationDetails as drd inner join inserted as i on i.DayReservationID = drd.DayReservationID where drd.Student = 1) > (select NumberOfStudentDiscounts from inserted)
+			raiserror('Insterted NumberOfStudentDiscounts can not accomodate all currently enlisted students', 16, 1)
+			rollback transaction
+			return
+	end
+end
+go
+
+if object_id('checkWorkshopReservationNumberOfParticipantsAfterUpdatingWorkshopReservation') is not null drop trigger checkWorkshopReservationNumberOfParticipantsAfterUpdatingWorkshopReservation
+go
+create trigger checkWorkshopReservationNumberOfParticipantsAfterUpdatingWorkshopReservation on WorkshopReservation after update as begin
+	if(select NumberOfParticipants from inserted) < (select NumberOfParticipants from deleted) begin
+		if (select count(*) from WorkshopReservationDetails as wrd inner join inserted as i on i.DayReservationID = wrd.WorkshopReservationID) > (select NumberOfParticipants from inserted)
+			raiserror('Insterted NumberOfParticipants can not accomodate all currently enlisted participants', 16, 1)
+			rollback transaction
+			return
+	end
+end
+go
+
+if object_id('checkWorkshopReservationNumberOfStudentsAfterUpdatingWorkshopReservation') is not null drop trigger checkWorkshopReservationNumberOfStudentsAfterUpdatingWorkshopReservation
+go
+create trigger checkWorkshopReservationNumberOfStudentsAfterUpdatingWorkshopReservation on WorkshopReservation after update as begin
+	if(select NumberOfStudentDiscounts from inserted) < (select NumberOfStudentDiscounts from deleted) begin
+		if (select count(*) from WorkshopReservationDetails as wrd
+			inner join inserted as i on i.WorkshopReservationID = wrd.WorkshopReservationID 
+			inner join DayReservationDetails as drd on drd.DayReservationDetailsID = wrd.DayReservationDetailsID
+			where drd.Student = 1) > (select NumberOfStudentDiscounts from inserted)
+			raiserror('Insterted NumberOfStudentDiscounts can not accomodate all currently enlisted students', 16, 1)
+			rollback transaction
+			return
 	end
 end
 go
