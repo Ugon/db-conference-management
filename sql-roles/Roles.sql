@@ -57,7 +57,6 @@ GRANT EXECUTE ON [dbo].[changeParticipantsStudentStatus] TO personClient;
 GRANT SELECT ON [dbo].[FutureConferences] TO personClient;
 GRANT SELECT ON [dbo].[DaysOfFutureConferences] TO personClient;
 GRANT SELECT ON [dbo].[WorkshopsOfFutureConferences] TO personClient;
-GRANT SELECT ON [dbo].[MoneySpentStatisticsForPersonClients] TO personClient;
 GRANT SELECT ON [dbo].[AllClientReservations] TO personClient;
 GRANT SELECT ON [dbo].[ReservationDaysForPersonClient] TO personClient;
 GRANT SELECT ON [dbo].[ReservationWorkshopsForPersonClient] TO personClient;
@@ -92,7 +91,6 @@ GRANT EXECUTE ON [dbo].[cancelWorkshopReservation] TO companyClient
 GRANT SELECT ON [dbo].[FutureConferences] TO companyClient;
 GRANT SELECT ON [dbo].[DaysOfFutureConferences] TO companyClient;
 GRANT SELECT ON [dbo].[WorkshopsOfFutureConferences] TO companyClient;
-GRANT SELECT ON [dbo].[MoneySpentStatisticsForCompanyClients] TO companyClient;
 GRANT SELECT ON [dbo].[AllClientReservations] TO companyClient;
 GRANT SELECT ON [dbo].[ReservationDaysForCompanyClient] TO companyClient;
 GRANT SELECT ON [dbo].[ReservationWorkshopsForCompanyClient] TO companyClient;
