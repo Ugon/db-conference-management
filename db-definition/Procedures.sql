@@ -1,4 +1,4 @@
-use pachuta_a
+--use pachuta_a
 
 IF OBJECT_ID('addPayment') IS NOT NULL
 DROP PROCEDURE addPayment
@@ -282,21 +282,17 @@ BEGIN
 		
 	set @dayReservationDetailsId = (select DayReservationDetailsId from DayReservationDetails 
 		where PersonID = @personId and DayReservationID = @dayReservationId)
-		
-	if @dayReservationDetailsId is not null
-	begin
-		set @workshopInstanceId = (select WorkshopInstanceId from WorkshopInstance
+
+	set @workshopInstanceId = (select WorkshopInstanceId from WorkshopInstance
 		where DayID = @dayId and StartTime = @StartTime 
 		and WorkshopTypeID = (select WorkshopTypeID from WorkshopType where Name = @WorkshopName))	
 		
-		set @workshopReservationId = (select WorkshopReservationID from WorkshopReservation
-			where DayReservationID = @dayReservationId and WorkshopInstanceID = @workshopInstanceId)
+	set @workshopReservationId = (select WorkshopReservationID from WorkshopReservation
+		where DayReservationID = @dayReservationId and WorkshopInstanceID = @workshopInstanceId)
 		
-		insert into WorkshopReservationDetails(DayReservationDetailsID, WorkshopReservationID)
-			values(@dayReservationDetailsId, @workshopReservationId)
+	insert into WorkshopReservationDetails(DayReservationDetailsID, WorkshopReservationID)
+		values(@dayReservationDetailsId, @workshopReservationId)
 		
-	end
-	else RAISERROR('Given person has no reservation for a conference',0,1)
 END
 GO
 
@@ -328,16 +324,12 @@ BEGIN
 	
 	set @personId = (select PersonId from Person where Mail = @Mail)
 	
-	if @IndexNumber is null begin
-           insert into DayReservationDetails(DayReservationID, PersonID, Student)
-				values(@dayReservationId, @personId, 0)
-	end else begin try
-           insert into DayReservationDetails(DayReservationID, PersonID, Student)
-				values(@dayReservationId, @personId, 1)
-	end try begin catch
-           insert into DayReservationDetails(DayReservationID, PersonID, Student)
-				values(@dayReservationId, @personId, 0)
-	end catch
+	if @IndexNumber is null 
+		insert into DayReservationDetails(DayReservationID, PersonID, Student)
+			values(@dayReservationId, @personId, 0)
+	else
+        insert into DayReservationDetails(DayReservationID, PersonID, Student)
+			values(@dayReservationId, @personId, 1)
 END
 GO 
 
