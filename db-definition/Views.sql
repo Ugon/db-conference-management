@@ -615,7 +615,29 @@ AS
 	) > 0
 GO
 
+if object_id('invoiceForReservation') is not null drop function invoiceForReservation
+go
+create function invoiceForReservation(@ReservationID int) returns table as return 
+	
+	select cf.name as 'ConferenceName',r.ReservationTime, 'Day' as 'Position', cast(d.date as varchar(201)) as 'Date',
+	dr.NumberOfParticipants, dr.NumberOfStudentDiscounts, (select dbo.calculateDayReservationPrice(dr.dayReservationID)) as 'Price'
+	from Reservation as r
+	inner join DayReservation as dr on r.ReservationID = dr.ReservationID
+	inner join day as d on d.DayID = dr.DayID
+	inner join conference as cf on cf.conferenceid = d.conferenceid
+	where r.ReservationID = @ReservationID
 
+	union
 
+	select cf.name as 'ConferenceName',r.ReservationTime, 'Workshop: ' + wt.name as 'Position', cast(d.date as varchar(100)) + ' ' + cast(wi.StartTime as varchar(100)) as 'Date',
+	wr.NumberOfParticipants, wr.NumberOfStudentDiscounts, (select dbo.calculateWorkshopReservationPrice(wr.WorkshopReservationID)) as 'Price'
+	from Reservation as r
+	inner join DayReservation as dr on r.ReservationID = dr.ReservationID
+	inner join WorkshopReservation as wr on dr.DayReservationID = wr.DayReservationID
+	inner join day as d on d.DayID = dr.DayID
+	inner join WorkshopInstance as wi on wi.WorkshopInstanceID = wr.WorkshopInstanceID
+	inner join WorkshopType as wt on wt.WorkshopTypeID = wi.WorkshopTypeID
+	inner join conference as cf on cf.conferenceid = d.conferenceid
+	where r.ReservationID = @ReservationID
 
-
+go
