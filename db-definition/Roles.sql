@@ -37,6 +37,7 @@ GRANT SELECT ON [dbo].[WorkshopParticipants] TO organizer;
 GRANT SELECT ON [dbo].[AllClientReservations] TO organizer;
 GRANT SELECT ON [dbo].[mostPopularWorkshopTypes] TO organizer;
 GRANT SELECT ON [dbo].[BadgesForConferenceParticipants] TO organizer;
+GRANT SELECT ON [dbo].[invoiceForReservation] TO organizer;
 
 
 IF DATABASE_PRINCIPAL_ID('personClient') IS NOT NULL
@@ -60,6 +61,7 @@ GRANT SELECT ON [dbo].[WorkshopsOfFutureConferences] TO personClient;
 GRANT SELECT ON [dbo].[AllClientReservations] TO personClient;
 GRANT SELECT ON [dbo].[ReservationDaysForPersonClient] TO personClient;
 GRANT SELECT ON [dbo].[ReservationWorkshopsForPersonClient] TO personClient;
+GRANT SELECT ON [dbo].[invoiceForReservation] TO personClient;
 
 IF DATABASE_PRINCIPAL_ID('companyClient') IS NOT NULL
 drop role companyClient
@@ -98,6 +100,7 @@ GRANT SELECT ON [dbo].[ReservationDayDetailsForCompanyClient] TO companyClient;
 GRANT SELECT ON [dbo].[ReservationWorkshopDetailsForCompanyClient] TO companyClient;
 GRANT SELECT ON [dbo].[ReservationFreeDaySlots] TO companyClient;
 GRANT SELECT ON [dbo].[ReservationFreeWorkshopSlots] TO companyClient;
+GRANT SELECT ON [dbo].[invoiceForReservation] TO companyClient;
 
 IF DATABASE_PRINCIPAL_ID('participant') IS NOT NULL
 drop role participant
