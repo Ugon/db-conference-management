@@ -558,13 +558,22 @@ as begin
 end
 go
 
-if object_id('cancelReservation') is not null drop procedure cancelReservation;
+if object_id('cancelReservationForClient') is not null drop procedure cancelReservationForClient;
 go
-create procedure cancelReservation
+create procedure cancelReservationForClient
 	@ReservationID int
 as update Reservation set Cancelled = 1 where ReservationID = @ReservationID
 go
 
+if object_id('cancelReservationForOrganiser') is not null drop procedure cancelReservationForOrganiser;
+go
+create procedure cancelReservationForOrganiser
+	@ReservationID int,
+	@moneyToReturn money output
+as 
+	set @moneyToReturn = (select Paid from Reservation where ReservationId = @ReservationID)
+	update Reservation set Cancelled = 1 where ReservationID = @ReservationID
+go
 
 IF OBJECT_ID('changeParticipantsStudentStatus') IS NOT NULL 
 DROP PROC changeParticipantsStudentStatus
