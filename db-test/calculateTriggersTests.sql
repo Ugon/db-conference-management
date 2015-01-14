@@ -201,8 +201,6 @@ create procedure [calculateTriggersTest].testWorkshopSlotsFilledShouldSUCCESS as
 end 
 go
 
---Sprawdzanie poprawnoœci zliczania zajêtych miejsc na warsztat po anulowaniu rezerwacji
-
 --exec tSQLt.Run '[calculateTriggersTest].[testDaySlotsFilledAfterReservatinonCancelShouldSUCCESS]' go
 if object_id('[calculateTriggersTest].[testDaySlotsFilledAfterReservatinonCancelShouldSUCCESS]') is not null 
 drop procedure [calculateTriggersTest].[testDaySlotsFilledAfterReservatinonCancelShouldSUCCESS]
