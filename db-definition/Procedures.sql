@@ -802,5 +802,32 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID('changeConferenceDayCapacity') IS NOT NULL 
+DROP PROC changeConferenceDayCapacity
+GO
 
+CREATE PROCEDURE changeConferenceDayCapacity
+	@conferenceName varchar(200),
+	@date date,
+	@newCapacity int
+AS
+BEGIN
+	update Day set Capacity = @newCapacity
+	where DayId = dbo.getConferenceDayId(@conferenceName, @date)
+END
+GO
+
+IF OBJECT_ID('changeWorkshopTypeCapacity') IS NOT NULL 
+DROP PROC changeWorkshopTypeCapacity
+GO
+
+CREATE PROCEDURE changeWorkshopTypeCapacity
+	@workshopName varchar(200),
+	@newCapacity int
+AS
+BEGIN
+	update WorkshopType set Capacity = @newCapacity
+	where Name=@workshopName
+END
+GO
 
