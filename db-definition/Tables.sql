@@ -1,5 +1,6 @@
---use pachuta_a
---go
+use pachuta_a
+go
+
 if object_id('WorkshopReservationDetails') is not null drop table WorkshopReservationDetails
 go
 if object_id('DayReservationDetails') is not null drop table DayReservationDetails

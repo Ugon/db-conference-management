@@ -319,10 +319,28 @@ create procedure [CompanyReservationTest].[testMakingAReservationForMoreParticip
 
 	declare @ReservationID int = (select ReservationID from Reservation)
 	
+	exec addConferenceDay
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@Capacity = 2
+
+	exec addWorkshopType
+		@WorkshopTypeName = 'TestWorkshopType2',
+		@Capacity = 2,
+		@Price = 20
+
+	exec addWorkshopInstance
+		@WorkshopTypeName = 'TestWorkshopType2',
+		@ConferenceName = 'TestConference1',
+		@StartTime = '8:00:00',
+		@EndTime = '9:00:00',
+		@WorkshopDate = '2000-01-03',
+		@Location = 'TestLocation1'
+
 	exec addDayReservationForCompany
 		@ReservationID = @ReservationID,
 		@ConferenceName = 'TestConference1',
-		@Date = '2000-01-02',
+		@Date = '2000-01-03',
 		@NumberOfParticipants = 1,
 		@NumberOfStudentDiscounts = 0
 
@@ -330,8 +348,8 @@ create procedure [CompanyReservationTest].[testMakingAReservationForMoreParticip
 	exec addWorkshopReservationForCompany
 		@ReservationID = @ReservationID,
 		@ConferenceName = 'TestConference1',
-		@WorkshopName = 'TestWorkshopType1',
-		@Date = '2000-01-02',
+		@WorkshopName = 'TestWorkshopType2',
+		@Date = '2000-01-03',
 		@StartTime = '8:00:00',
 		@NumberOfParticipants = 2,
 		@NumberOfStudentDiscounts = 0
@@ -836,10 +854,10 @@ create procedure [CompanyReservationTest].[testReducingNumberOfWorkshopStudentsS
 end
 
 
---exec tSQLt.Run '[CompanyReservationTest].[testRemovingSomeoneFromDayWhenHerRegisteredForWorkshopShouldFAIL]'
-if object_id('[CompanyReservationTest].[testRemovingSomeoneFromDayWhenHerRegisteredForWorkshopShouldFAIL]') is not null drop procedure [CompanyReservationTest].[testRemovingSomeoneFromDayWhenHerRegisteredForWorkshopShouldFAIL]
+--exec tSQLt.Run '[CompanyReservationTest].[testRemovingSomeoneFromDayWhenHeIsRegisteredForWorkshopShouldFAIL]'
+if object_id('[CompanyReservationTest].[testRemovingSomeoneFromDayWhenHeIsRegisteredForWorkshopShouldFAIL]') is not null drop procedure [CompanyReservationTest].[testRemovingSomeoneFromDayWhenHeIsRegisteredForWorkshopShouldFAIL]
 go
-create procedure [CompanyReservationTest].[testRemovingSomeoneFromDayWhenHerRegisteredForWorkshopShouldFAIL] as begin
+create procedure [CompanyReservationTest].[testRemovingSomeoneFromDayWhenHeIsRegisteredForWorkshopShouldFAIL] as begin
 
 	declare @ReservationID int = (select ReservationID from Reservation)
 
@@ -851,23 +869,3 @@ create procedure [CompanyReservationTest].[testRemovingSomeoneFromDayWhenHerRegi
 		@Mail = 'TestMail1@mail.com'
 
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
---test: jam mam chuja w workshop i wywale go z dnia to ma sie wywalic.

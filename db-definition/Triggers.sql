@@ -1,5 +1,5 @@
---use pachuta_a
-
+use pachuta_a
+go
 
 -------------------------------------------------------------------------------------------
 ---------------AUXILIARY FUNCTIONS---------------------------------------------------------
@@ -508,12 +508,10 @@ go
 
 if object_id('checkThatWorkshopCapacityIsNotExceeded') is not null drop trigger checkThatWorkshopCapacityIsNotExceeded
 go
-create trigger checkThatWorkshopCapacityIsNotExceeded on WorkshopReservation after insert, update as begin
+create trigger checkThatWorkshopCapacityIsNotExceeded on WorkshopInstance after insert, update as begin
 	declare @WorkshopInstanceID int = (select WorkshopInstanceID from inserted)
-	if (select Capacity from WorkshopType as wt
-			inner join WorkshopInstance as wi on wi.WorkshopTypeID = wt.WorkshopTypeID
-			where wi.WorkshopInstanceID = @WorkshopInstanceID)
-		< (select SlotsFilled from WorkshopInstance where @WorkshopInstanceID = WorkshopInstanceID)
+	if (select Capacity from WorkshopType as wt	inner join inserted as i on i.WorkshopTypeID = wt.WorkshopTypeID)
+		< (select SlotsFilled from inserted)
 			throw 50001, 'Workshop SlotsFilled exceeds Capacity', 1
 end
 go
@@ -526,16 +524,6 @@ create trigger checkThatWorkshopCapacityIsNotDecreasedSoThatItCanNoLongerAccomod
 			inner join inserted as i on i.WorkshopTypeID = wi.WorkshopTypeID
 			where wi.SlotsFilled > i.Capacity)
 				throw 50001, 'New Workshop Capacity can not accomodate all registered participants', 1
-	end			
-end
-go
-
-if object_id('checkThatDayCapacityIsNotDecreasedSoThatItCanNoLongerAccomodateAllParticipants') is not null drop trigger checkThatDayCapacityIsNotDecreasedSoThatItCanNoLongerAccomodateAllParticipants
-go
-create trigger checkThatDayCapacityIsNotDecreasedSoThatItCanNoLongerAccomodateAllParticipants on [Day] after update as begin
-	if (select Capacity from inserted) < (select Capacity from deleted) begin
-		if exists (select * from Day as d inner join inserted as i on i.DayID = d.DayID where d.SlotsFilled > i.Capacity)
-				throw 50001, 'New Day Capacity can not accomodate all registered participants', 1
 	end			
 end
 go

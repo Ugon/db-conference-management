@@ -1,3 +1,4 @@
+--exec tSQLt.RunTestClass '[OtherTests]'
 use test_db
 go
 
@@ -204,8 +205,11 @@ create procedure [OtherTests].[testReducingDayCapacitySoThatItCanNoLongerAccomod
 		@NumberOfParticipants = 2,
 		@NumberOfStudentDiscounts = 0
 
-	exec tSQLt.ExpectException @ExpectedMessage = 'New Day Capacity can not accomodate all registered participants'
-	--decreasing day capacity to 1 goes here.
+	exec tSQLt.ExpectException --Day SlotsFilled >= Capacity constraint
+	exec changeConferenceDayCapacity
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-01',
+		@NewCapacity = 1
 
 end
 
@@ -278,6 +282,8 @@ create procedure [OtherTests].[testReducingWorkshopCapacitySoThatItCanNoLongerAc
 		@NumberOfStudentDiscounts = 0
 
 	exec tSQLt.ExpectException @ExpectedMessage = 'New Workshop Capacity can not accomodate all registered participants'
-	--decreasing workshop capacity to 1 goes here.
+	exec changeWorkshopTypeCapacity
+		@workshopName = 'TestWorkshopType1',
+		@newCapacity = 1
 
 end

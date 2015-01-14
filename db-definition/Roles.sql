@@ -1,4 +1,5 @@
 use pachuta_a
+go
 
 IF DATABASE_PRINCIPAL_ID('organizer') IS NOT NULL
 drop role organizer

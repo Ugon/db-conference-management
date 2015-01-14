@@ -1,4 +1,5 @@
---use pachuta_a
+use pachuta_a
+go
 
 IF OBJECT_ID('addPayment') IS NOT NULL
 DROP PROCEDURE addPayment
@@ -488,7 +489,7 @@ create procedure addDayReservationForPerson
 	@FirstName varchar(200),
 	@LastName varchar(200),
 	@Mail varchar(200),
-	@IndexNumber varchar(6)
+	@IndexNumber varchar(6) = null
 as begin
 	declare @NumberOfStudentDiscounts int = 0
 	if @IndexNumber is not null set @NumberOfStudentDiscounts = 1
@@ -744,11 +745,11 @@ BEGIN
 END
 GO
 
-IF OBJECT_ID('removeParticipantDay') IS NOT NULL 
-DROP PROC removeParticipantDay
+IF OBJECT_ID('removeDayReservationForPerson') IS NOT NULL 
+DROP PROC removeDayReservationForPerson
 GO
 
-CREATE PROCEDURE removeParticipantDay
+CREATE PROCEDURE removeDayReservationForPerson
 	@reservationId int,
 	@conferenceName varchar(200),
 	@date date,
@@ -768,11 +769,11 @@ BEGIN
 END
 GO
 
-IF OBJECT_ID('removeParticipantWorkshop') IS NOT NULL 
-DROP PROC removeParticipantWorkshop
+IF OBJECT_ID('removeWorkshopReservationForPerson') IS NOT NULL 
+DROP PROC removeWorkshopReservationForPerson
 GO
 
-CREATE PROCEDURE removeParticipantWorkshop
+CREATE PROCEDURE removeWorkshopReservationForPerson
 	@reservationId int,
 	@conferenceName varchar(200),
 	@workshopName varchar(200),
