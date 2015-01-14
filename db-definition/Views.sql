@@ -1,4 +1,5 @@
 use pachuta_a
+go
 
 IF OBJECT_ID('AllConferences') IS NOT NULL
 drop view AllConferences

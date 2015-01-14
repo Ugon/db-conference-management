@@ -1,4 +1,5 @@
 use pachuta_a
+go
 
 IF OBJECT_ID('getConferenceId') IS NOT NULL
 DROP FUNCTION getConferenceId

@@ -1,4 +1,5 @@
 use pachuta_a
+go
 
 IF OBJECT_ID('addPayment') IS NOT NULL
 DROP PROCEDURE addPayment
@@ -282,21 +283,17 @@ BEGIN
 		
 	set @dayReservationDetailsId = (select DayReservationDetailsId from DayReservationDetails 
 		where PersonID = @personId and DayReservationID = @dayReservationId)
-		
-	if @dayReservationDetailsId is not null
-	begin
-		set @workshopInstanceId = (select WorkshopInstanceId from WorkshopInstance
+
+	set @workshopInstanceId = (select WorkshopInstanceId from WorkshopInstance
 		where DayID = @dayId and StartTime = @StartTime 
 		and WorkshopTypeID = (select WorkshopTypeID from WorkshopType where Name = @WorkshopName))	
 		
-		set @workshopReservationId = (select WorkshopReservationID from WorkshopReservation
-			where DayReservationID = @dayReservationId and WorkshopInstanceID = @workshopInstanceId)
+	set @workshopReservationId = (select WorkshopReservationID from WorkshopReservation
+		where DayReservationID = @dayReservationId and WorkshopInstanceID = @workshopInstanceId)
 		
-		insert into WorkshopReservationDetails(DayReservationDetailsID, WorkshopReservationID)
-			values(@dayReservationDetailsId, @workshopReservationId)
+	insert into WorkshopReservationDetails(DayReservationDetailsID, WorkshopReservationID)
+		values(@dayReservationDetailsId, @workshopReservationId)
 		
-	end
-	else RAISERROR('Given person has no reservation for a conference',0,1)
 END
 GO
 
@@ -328,16 +325,12 @@ BEGIN
 	
 	set @personId = (select PersonId from Person where Mail = @Mail)
 	
-	if @IndexNumber is null begin
-           insert into DayReservationDetails(DayReservationID, PersonID, Student)
-				values(@dayReservationId, @personId, 0)
-	end else begin try
-           insert into DayReservationDetails(DayReservationID, PersonID, Student)
-				values(@dayReservationId, @personId, 1)
-	end try begin catch
-           insert into DayReservationDetails(DayReservationID, PersonID, Student)
-				values(@dayReservationId, @personId, 0)
-	end catch
+	if @IndexNumber is null 
+		insert into DayReservationDetails(DayReservationID, PersonID, Student)
+			values(@dayReservationId, @personId, 0)
+	else
+        insert into DayReservationDetails(DayReservationID, PersonID, Student)
+			values(@dayReservationId, @personId, 1)
 END
 GO 
 
@@ -496,7 +489,7 @@ create procedure addDayReservationForPerson
 	@FirstName varchar(200),
 	@LastName varchar(200),
 	@Mail varchar(200),
-	@IndexNumber varchar(6)
+	@IndexNumber varchar(6) = null
 as begin
 	declare @NumberOfStudentDiscounts int = 0
 	if @IndexNumber is not null set @NumberOfStudentDiscounts = 1
@@ -685,7 +678,6 @@ CREATE procedure changeNumberOfStudentsWorkshop
 	@workshopName varchar(200),
 	@date date,
 	@startTime time,
-	@newNumberOfParticipants int,
 	@newNumberOfStudentDiscounts int
 AS
 BEGIN
@@ -753,11 +745,11 @@ BEGIN
 END
 GO
 
-IF OBJECT_ID('removeParticipantDay') IS NOT NULL 
-DROP PROC removeParticipantDay
+IF OBJECT_ID('removeDayReservationForPerson') IS NOT NULL 
+DROP PROC removeDayReservationForPerson
 GO
 
-CREATE PROCEDURE removeParticipantDay
+CREATE PROCEDURE removeDayReservationForPerson
 	@reservationId int,
 	@conferenceName varchar(200),
 	@date date,
@@ -777,11 +769,11 @@ BEGIN
 END
 GO
 
-IF OBJECT_ID('removeParticipantWorkshop') IS NOT NULL 
-DROP PROC removeParticipantWorkshop
+IF OBJECT_ID('removeWorkshopReservationForPerson') IS NOT NULL 
+DROP PROC removeWorkshopReservationForPerson
 GO
 
-CREATE PROCEDURE removeParticipantWorkshop
+CREATE PROCEDURE removeWorkshopReservationForPerson
 	@reservationId int,
 	@conferenceName varchar(200),
 	@workshopName varchar(200),

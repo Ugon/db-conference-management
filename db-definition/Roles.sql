@@ -1,4 +1,5 @@
 use pachuta_a
+go
 
 IF DATABASE_PRINCIPAL_ID('organizer') IS NOT NULL
 drop role organizer
@@ -84,8 +85,8 @@ GRANT EXECUTE ON [dbo].[changeNumberOfStudentsDay] TO companyClient;
 GRANT EXECUTE ON [dbo].[changeNumberOfStudentsWorkshop] TO companyClient;
 GRANT EXECUTE ON [dbo].[changeWorkshopReservationNumbers] TO companyClient;
 GRANT EXECUTE ON [dbo].[changeParticipantsStudentStatus] TO companyClient;
-GRANT EXECUTE ON [dbo].[removeParticipantDay] TO companyClient;
-GRANT EXECUTE ON [dbo].[removeParticipantWorkshop] TO companyClient;
+GRANT EXECUTE ON [dbo].[removeDayReservationForPerson] TO companyClient;
+GRANT EXECUTE ON [dbo].[removeWorkshopReservationForPerson] TO companyClient;
 GRANT EXECUTE ON [dbo].[cancelDayReservation] TO companyClient
 GRANT EXECUTE ON [dbo].[cancelReservation] TO companyClient
 GRANT EXECUTE ON [dbo].[cancelWorkshopReservation] TO companyClient
