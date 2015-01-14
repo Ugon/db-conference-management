@@ -291,18 +291,18 @@ create trigger calculateReservationPriceAfterWorkshopReservationDelete on Worksh
 end
 go
 
-if object_id('calculatePastReservationCountAfterReservationModification') is not null drop trigger calculatePastReservationCountAfterReservationModification
+if object_id('calculatePastReservationCountAfterReservationCancel') is not null drop trigger calculatePastReservationCountAfterReservationCancel
 go
-create trigger calculatePastReservationCountAfterReservationModification on Reservation after insert, update as begin
+create trigger calculatePastReservationCountAfterReservationCancel on Reservation after insert, update as begin
 	declare @ClientID int = (select ClientID from inserted)
 	declare @PastReservationCount int = (select count(*) from Reservation as r where r.ClientID = @ClientID and r.Cancelled = 0)
 	update Client set PastReservationCount = @PastReservationCount where ClientID = @ClientID
 end
 go
 
-if object_id('calculateTotalMoneySpentAfterReservationModification') is not null drop trigger calculateTotalMoneySpentAfterReservationModification
+if object_id('calculateTotalMoneySpentAfterReservationCancel') is not null drop trigger calculateTotalMoneySpentAfterReservationCancel
 go
-create trigger calculateTotalMoneySpentAfterReservationModification on Reservation after insert, update as begin
+create trigger calculateTotalMoneySpentAfterReservationCancel on Reservation after insert, update as begin
 	declare @ClientID int = (select ClientID from inserted)
 	declare @TotalMoneySpent int = isnull((select sum(r.Paid) from Reservation as r where r.ClientID = @ClientID and r.Cancelled = 0), 0)
 	update Client set TotalMoneySpent = @TotalMoneySpent where ClientID = @ClientID

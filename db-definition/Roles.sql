@@ -14,6 +14,9 @@ GRANT EXECUTE ON [dbo].[addWorkshopInstance] TO organizer;
 GRANT EXECUTE ON [dbo].[addWorkshopType] TO organizer;
 GRANT EXECUTE ON [dbo].[addClientCompany] TO organizer;
 GRANT EXECUTE ON [dbo].[addClientPerson] TO organizer;
+GRANT EXECUTE ON [dbo].[changeConferenceDayCapacity] TO organizer;
+GRANT EXECUTE ON [dbo].[changeWorkshopTypeCapacity] TO organizer;
+GRANT EXECUTE ON [dbo].[cancelReservationForOrganiser] To organizer;
 
 GRANT SELECT ON [dbo].[AllConferences] TO organizer;
 GRANT SELECT ON [dbo].[FutureConferences] TO organizer;
@@ -51,7 +54,7 @@ GRANT EXECUTE ON [dbo].[addNewReservation] TO personClient;
 GRANT EXECUTE ON [dbo].[addPayment] TO personClient;
 GRANT EXECUTE ON [dbo].[addDayReservationForPerson] TO personClient;
 GRANT EXECUTE ON [dbo].[addWorkshopReservationForPerson] TO personClient;
-GRANT EXECUTE ON [dbo].[cancelReservation] TO personClient;
+GRANT EXECUTE ON [dbo].[cancelReservationForClient] TO personClient;
 GRANT EXECUTE ON [dbo].[cancelDayReservation] TO personClient;
 GRANT EXECUTE ON [dbo].[cancelWorkshopReservation] TO personClient;
 GRANT EXECUTE ON [dbo].[changeParticipantsStudentStatus] TO personClient;
@@ -88,7 +91,7 @@ GRANT EXECUTE ON [dbo].[changeParticipantsStudentStatus] TO companyClient;
 GRANT EXECUTE ON [dbo].[removeDayReservationForPerson] TO companyClient;
 GRANT EXECUTE ON [dbo].[removeWorkshopReservationForPerson] TO companyClient;
 GRANT EXECUTE ON [dbo].[cancelDayReservation] TO companyClient
-GRANT EXECUTE ON [dbo].[cancelReservation] TO companyClient
+GRANT EXECUTE ON [dbo].[cancelReservationForClient] TO companyClient
 GRANT EXECUTE ON [dbo].[cancelWorkshopReservation] TO companyClient
 
 GRANT SELECT ON [dbo].[FutureConferences] TO companyClient;
