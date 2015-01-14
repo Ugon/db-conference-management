@@ -677,7 +677,6 @@ CREATE procedure changeNumberOfStudentsWorkshop
 	@workshopName varchar(200),
 	@date date,
 	@startTime time,
-	@newNumberOfParticipants int,
 	@newNumberOfStudentDiscounts int
 AS
 BEGIN

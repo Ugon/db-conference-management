@@ -1,3 +1,4 @@
+--exec tSQLt.RunTestClass [CompanyReservationTest]
 use test_db
 go
 
@@ -403,10 +404,116 @@ create procedure [CompanyReservationTest].[testAddingMorePeopleToDayThanInReserv
 end
 go
 
+
 --exec tSQLt.Run '[CompanyReservationTest].[testAddingMoreStudentsToDayThanInReservationShouldFAIL]'
 if object_id('[CompanyReservationTest].[testAddingMoreStudentsToDayThanInReservationShouldFAIL]') is not null drop procedure [CompanyReservationTest].[testAddingMoreStudentsToDayThanInReservationShouldFAIL]
 go
 create procedure [CompanyReservationTest].[testAddingMoreStudentsToDayThanInReservationShouldFAIL] as begin
+
+	declare @ReservationID int = (select ReservationID from Reservation)
+
+	exec addDayReservationForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-02',
+		@NumberOfParticipants = 1,
+		@NumberOfStudentDiscounts = 0
+
+	exec tSQLt.ExpectException @ExpectedMessage = 'Number of registered students for day exceeds DayReservation NumberOfStudentDiscounts limit'
+	exec addDayReservationDetailsForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-02',
+		@FirstName = 'TestFirstName1',
+		@LastName = 'TestLastName1',
+		@Mail = 'TestMail1@mail.com',
+		@IndexNumber = '123457'
+
+end
+go
+
+
+--exec tSQLt.Run '[CompanyReservationTest].[testAddingMorePeopleToWorkshopThanInReservationShouldFAIL]'
+if object_id('[CompanyReservationTest].[testAddingMorePeopleToWorkshopThanInReservationShouldFAIL]') is not null drop procedure [CompanyReservationTest].[testAddingMorePeopleToWorkshopThanInReservationShouldFAIL]
+go
+create procedure [CompanyReservationTest].[testAddingMorePeopleToWorkshopThanInReservationShouldFAIL] as begin
+
+	declare @ReservationID int = (select ReservationID from Reservation)
+
+	exec addConferenceDay
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@Capacity = 2
+
+	exec addWorkshopInstance
+		@WorkshopTypeName = 'TestWorkshopType1',
+		@ConferenceName = 'TestConference1',
+		@StartTime = '8:00:00',
+		@EndTime = '9:00:00',
+		@WorkshopDate = '2000-01-03',
+		@Location = 'TestLocation1'
+
+	exec addDayReservationForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@NumberOfParticipants = 2,
+		@NumberOfStudentDiscounts = 0
+
+	exec addWorkshopReservationForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@WorkshopName = 'TestWorkshopType1',
+		@Date = '2000-01-03',
+		@StartTime = '8:00:00',
+		@NumberOfParticipants = 1,
+		@NumberOfStudentDiscounts = 0
+
+	exec addDayReservationDetailsForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@FirstName = 'TestFirstName1',
+		@LastName = 'TestLastName1',
+		@Mail = 'TestMail1@mail.com'
+
+	exec addDayReservationDetailsForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@FirstName = 'TestFirstName2',
+		@LastName = 'TestLastName2',
+		@Mail = 'TestMail2@mail.com'
+
+	exec addWorkshopReservationDetailsForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@WorkshopName = 'TestWorkshopType1',
+		@Date = '2000-01-03',
+		@StartTime = '8:00:00',
+		@FirstName = 'TestFirstName1',
+		@LastName = 'TestLastName1',
+		@Mail = 'TestMail1@mail.com'
+
+	exec tSQLt.ExpectException @ExpectedMessage = 'Number of registered participants for workshop exceeds WorkshopReservation NumberOfParticipants limit'
+	exec addWorkshopReservationDetailsForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@WorkshopName = 'TestWorkshopType1',
+		@Date = '2000-01-03',
+		@StartTime = '8:00:00',
+		@FirstName = 'TestFirstName2',
+		@LastName = 'TestLastName2',
+		@Mail = 'TestMail2@mail.com'
+
+end
+go
+
+
+--exec tSQLt.Run '[CompanyReservationTest].[testAddingMoreStudentsToWorkshopThanInReservationShouldFAIL]'
+if object_id('[CompanyReservationTest].[testAddingMoreStudentsToWorkshopThanInReservationShouldFAIL]') is not null drop procedure [CompanyReservationTest].[testAddingMoreStudentsToWorkshopThanInReservationShouldFAIL]
+go
+create procedure [CompanyReservationTest].[testAddingMoreStudentsToWorkshopThanInReservationShouldFAIL] as begin
 
 	declare @ReservationID int = (select ReservationID from Reservation)
 
@@ -449,3 +556,318 @@ create procedure [CompanyReservationTest].[testAddingMoreStudentsToDayThanInRese
 
 end
 go
+
+
+--exec tSQLt.Run '[CompanyReservationTest].[testModifyingReservationAfterPaymentShouldFAIL]'
+if object_id('[CompanyReservationTest].[testModifyingReservationAfterPaymentShouldFAIL]') is not null drop procedure [CompanyReservationTest].[testModifyingReservationAfterPaymentShouldFAIL]
+go
+create procedure [CompanyReservationTest].[testModifyingReservationAfterPaymentShouldFAIL] as begin
+
+	declare @ReservationID int = (select ReservationID from Reservation)
+
+	exec addConferenceDay
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@Capacity = 2
+
+	exec addDayReservationForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@NumberOfParticipants = 1,
+		@NumberOfStudentDiscounts = 0
+
+	exec addPayment
+		@ReservationID = @ReservationID,
+		@Payment = 200
+
+	exec tSQLt.ExpectException @ExpectedMessage = 'Attempting to modify a reservation that was already paid for'
+	exec changeNumberOfParticipantsDay
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@NewNumberOfParticipants = 2
+
+end
+
+
+--exec tSQLt.Run '[CompanyReservationTest].[testReducingNumberOfDayParticipantsSoThatItCanNoLongerAccomodateAllEnlistedPeopleShouldFAIL]'
+if object_id('[CompanyReservationTest].[testReducingNumberOfDayParticipantsSoThatItCanNoLongerAccomodateAllEnlistedPeopleShouldFAIL]') is not null drop procedure [CompanyReservationTest].[testReducingNumberOfDayParticipantsSoThatItCanNoLongerAccomodateAllEnlistedPeopleShouldFAIL]
+go
+create procedure [CompanyReservationTest].[testReducingNumberOfDayParticipantsSoThatItCanNoLongerAccomodateAllEnlistedPeopleShouldFAIL] as begin
+
+	declare @ReservationID int = (select ReservationID from Reservation)
+
+	exec addConferenceDay
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@Capacity = 2
+
+	exec addDayReservationForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@NumberOfParticipants = 2,
+		@NumberOfStudentDiscounts = 0
+
+	exec addDayReservationDetailsForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@FirstName = 'TestFirstName1',
+		@LastName = 'TestLastName1',
+		@Mail = 'TestMail1@mail.com'
+
+	exec addDayReservationDetailsForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@FirstName = 'TestFirstName2',
+		@LastName = 'TestLastName2',
+		@Mail = 'TestMail2@mail.com'
+
+	exec tSQLt.ExpectException @ExpectedMessage = 'Insterted NumberOfParticipants can not accomodate all currently enlisted participants'
+	exec changeNumberOfParticipantsDay
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@NewNumberOfParticipants = 1
+
+end
+
+
+--exec tSQLt.Run '[CompanyReservationTest].[testReducingNumberOfDayStudentsSoThatItCanNoLongerAccomodateAllEnlistedPeopleShouldFAIL]'
+if object_id('[CompanyReservationTest].[testReducingNumberOfDayStudentsSoThatItCanNoLongerAccomodateAllEnlistedPeopleShouldFAIL]') is not null drop procedure [CompanyReservationTest].[testReducingNumberOfDayStudentsSoThatItCanNoLongerAccomodateAllEnlistedPeopleShouldFAIL]
+go
+create procedure [CompanyReservationTest].[testReducingNumberOfDayStudentsSoThatItCanNoLongerAccomodateAllEnlistedPeopleShouldFAIL] as begin
+
+	declare @ReservationID int = (select ReservationID from Reservation)
+
+	exec addConferenceDay
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@Capacity = 1
+
+	exec addDayReservationForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@NumberOfParticipants = 1,
+		@NumberOfStudentDiscounts = 1
+
+	exec addDayReservationDetailsForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@FirstName = 'TestFirstName2',
+		@LastName = 'TestLastName2',
+		@Mail = 'TestMail2@mail.com',
+		@IndexNumber = '123457'
+
+	exec tSQLt.ExpectException @ExpectedMessage = 'Insterted NumberOfStudentDiscounts can not accomodate all currently enlisted students'
+	exec changeNumberOfStudentsDay
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@NewNumberOfStudentDiscounts = 0
+
+end
+
+
+--exec tSQLt.Run '[CompanyReservationTest].[testReducingNumberOfWorkshopParticipantsSoThatItCanNoLongerAccomodateAllEnlistedPeopleShouldFAIL]'
+if object_id('[CompanyReservationTest].[testReducingNumberOfWorkshopParticipantsSoThatItCanNoLongerAccomodateAllEnlistedPeopleShouldFAIL]') is not null drop procedure [CompanyReservationTest].[testReducingNumberOfWorkshopParticipantsSoThatItCanNoLongerAccomodateAllEnlistedPeopleShouldFAIL]
+go
+create procedure [CompanyReservationTest].[testReducingNumberOfWorkshopParticipantsSoThatItCanNoLongerAccomodateAllEnlistedPeopleShouldFAIL] as begin
+
+	declare @ReservationID int = (select ReservationID from Reservation)
+
+	exec addConferenceDay
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@Capacity = 2
+
+	exec addWorkshopType
+		@WorkshopTypeName = 'TestWorkshopType2',
+		@Capacity = 2,
+		@Price = 20
+
+	exec addWorkshopInstance
+		@WorkshopTypeName = 'TestWorkshopType2',
+		@ConferenceName = 'TestConference1', 
+		@StartTime = '8:00:00',
+		@EndTime = '9:00:00',
+		@WorkshopDate = '2000-01-03',
+		@Location = 'TestLocation1'
+
+	exec addDayReservationForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@NumberOfParticipants = 2,
+		@NumberOfStudentDiscounts = 0
+
+	exec addDayReservationDetailsForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@FirstName = 'TestFirstName1',
+		@LastName = 'TestLastName1',
+		@Mail = 'TestMail1@mail.com'
+
+	exec addDayReservationDetailsForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@FirstName = 'TestFirstName2',
+		@LastName = 'TestLastName2',
+		@Mail = 'TestMail2@mail.com'
+
+	exec addWorkshopReservationForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@WorkshopName = 'TestWorkshopType2',
+		@Date = '2000-01-03',
+		@StartTime = '8:00:00',
+		@NumberOfParticipants = 2,
+		@NumberOfStudentDiscounts = 0
+
+	exec addWorkshopReservationDetailsForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@WorkshopName = 'TestWorkshopType2',
+		@Date = '2000-01-03',
+		@StartTime = '8:00:00',
+		@FirstName = 'TestFirstName1',
+		@LastName = 'TestLastName1',
+		@Mail = 'TestMail1@mail.com'
+
+	exec addWorkshopReservationDetailsForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@WorkshopName = 'TestWorkshopType2',
+		@Date = '2000-01-03',
+		@StartTime = '8:00:00',
+		@FirstName = 'TestFirstName2',
+		@LastName = 'TestLastName2',
+		@Mail = 'TestMail2@mail.com'
+
+	exec tSQLt.ExpectException @ExpectedMessage = 'Insterted NumberOfParticipants can not accomodate all currently enlisted participants'
+	exec changeNumberOfParticipantsWorkshop
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@WorkshopName = 'TestWorkshopType2',
+		@Date = '2000-01-03',
+		@StartTime = '8:00:00',
+		@NewNumberOfParticipants = 1
+
+end
+
+
+--exec tSQLt.Run '[CompanyReservationTest].[testReducingNumberOfWorkshopStudentsSoThatItCanNoLongerAccomodateAllEnlistedPeopleShouldFAIL]'
+if object_id('[CompanyReservationTest].[testReducingNumberOfWorkshopStudentsSoThatItCanNoLongerAccomodateAllEnlistedPeopleShouldFAIL]') is not null drop procedure [CompanyReservationTest].[testReducingNumberOfWorkshopStudentsSoThatItCanNoLongerAccomodateAllEnlistedPeopleShouldFAIL]
+go
+create procedure [CompanyReservationTest].[testReducingNumberOfWorkshopStudentsSoThatItCanNoLongerAccomodateAllEnlistedPeopleShouldFAIL] as begin
+
+	declare @ReservationID int = (select ReservationID from Reservation)
+
+	exec addConferenceDay
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@Capacity = 1
+
+	exec addWorkshopType
+		@WorkshopTypeName = 'TestWorkshopType2',
+		@Capacity = 1,
+		@Price = 20
+
+	exec addWorkshopInstance
+		@WorkshopTypeName = 'TestWorkshopType2',
+		@ConferenceName = 'TestConference1', 
+		@StartTime = '8:00:00',
+		@EndTime = '9:00:00',
+		@WorkshopDate = '2000-01-03',
+		@Location = 'TestLocation1'
+
+	exec addDayReservationForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@NumberOfParticipants = 1,
+		@NumberOfStudentDiscounts = 1
+
+	exec addDayReservationDetailsForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-03',
+		@FirstName = 'TestFirstName2',
+		@LastName = 'TestLastName2',
+		@Mail = 'TestMail2@mail.com',
+		@IndexNumber = 123458
+
+	exec addWorkshopReservationForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@WorkshopName = 'TestWorkshopType2',
+		@Date = '2000-01-03',
+		@StartTime = '8:00:00',
+		@NumberOfParticipants = 1,
+		@NumberOfStudentDiscounts = 1
+
+	exec addWorkshopReservationDetailsForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@WorkshopName = 'TestWorkshopType2',
+		@Date = '2000-01-03',
+		@StartTime = '8:00:00',
+		@FirstName = 'TestFirstName2',
+		@LastName = 'TestLastName2',
+		@Mail = 'TestMail2@mail.com',
+		@IndexNumber = 123458
+
+	exec tSQLt.ExpectException @ExpectedMessage = 'Insterted NumberOfStudentDiscounts can not accomodate all currently enlisted students'
+	exec changeNumberOfStudentsWorkshop
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@WorkshopName = 'TestWorkshopType2',
+		@Date = '2000-01-03',
+		@StartTime = '8:00:00',
+		@NewNumberOfStudentDiscounts = 0
+
+end
+
+
+--exec tSQLt.Run '[CompanyReservationTest].[testRemovingSomeoneFromDayWhenHerRegisteredForWorkshopShouldFAIL]'
+if object_id('[CompanyReservationTest].[testRemovingSomeoneFromDayWhenHerRegisteredForWorkshopShouldFAIL]') is not null drop procedure [CompanyReservationTest].[testRemovingSomeoneFromDayWhenHerRegisteredForWorkshopShouldFAIL]
+go
+create procedure [CompanyReservationTest].[testRemovingSomeoneFromDayWhenHerRegisteredForWorkshopShouldFAIL] as begin
+
+	declare @ReservationID int = (select ReservationID from Reservation)
+
+	exec tSQLt.ExpectException --WorkshopReservationDetails.DayReservationDetailsID would reference non existing DayReservationDetails entry
+	exec removeDayReservationDetailsForCompany
+		@ReservationID = @ReservationID,
+		@ConferenceName = 'TestConference1',
+		@Date = '2000-01-01',
+		@Mail = 'TestMail1@mail.com'
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--test: jam mam chuja w workshop i wywale go z dnia to ma sie wywalic.
