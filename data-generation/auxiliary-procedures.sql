@@ -1,4 +1,5 @@
 use pachuta_a
+go
 
 if object_id('addClientCompanyIfNotExists') is not null drop procedure addClientCompanyIfNotExists;
 go
