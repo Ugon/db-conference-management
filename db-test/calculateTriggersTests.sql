@@ -6,11 +6,11 @@ go
 exec tSQLt.NewTestClass 'calculateTriggersTest'
 go
 
-if object_id('dbo.getClientReservation') is not null 
-drop function dbo.getClientReservation
+if object_id('[calculateTriggersTest].[getClientReservation]') is not null 
+drop function [calculateTriggersTest].[getClientReservation]
 go
 
-create function getClientReservation(@Login varchar(200))
+create function [calculateTriggersTest].[getClientReservation](@Login varchar(200))
 returns int
 as
 begin
@@ -130,7 +130,7 @@ create procedure [calculateTriggersTest].[setup] as begin
 end
 go
 
---exec tSQLt.Run '[calculateTriggersTest].[testDataCreationProcess]' go
+--exec tSQLt.Run '[calculateTriggersTest].[testDataCreationProcess]'
 if object_id('[calculateTriggersTest].[testDataCreationProcess]') is not null 
 drop procedure [calculateTriggersTest].[testDataCreationProcess]
 go
@@ -159,14 +159,14 @@ end
 go
 
 
---exec tSQLt.Run '[calculateTriggersTest].[testcalCulateReservationPriceShouldSUCCESS]' go
-if object_id('[calculateTriggersTest].[testcalCulateReservationPriceShouldSUCCESS]') is not null 
-drop procedure [calculateTriggersTest].[testcalCulateReservationPriceShouldSUCCESS]
+--exec tSQLt.Run '[calculateTriggersTest].[testCalculateReservationPriceShouldSUCCEED]'
+if object_id('[calculateTriggersTest].[testCalculateReservationPriceShouldSUCCEED]') is not null 
+drop procedure [calculateTriggersTest].[testCalculateReservationPriceShouldSUCCEED]
 go
 
-create procedure [calculateTriggersTest].[testcalCulateReservationPriceShouldSUCCESS] as begin
+create procedure [calculateTriggersTest].[testcalCulateReservationPriceShouldSUCCEED] as begin
 
-	declare @testReservationId int =  dbo.getClientReservation('cmp2')
+	declare @testReservationId int =  [calculateTriggersTest].[getClientReservation]('cmp2')
 
 	declare @ActualDayReservationPrice int = (select Price from Reservation where ReservationID = @testReservationId)
 	exec tSQLt.AssertEquals 900, @ActualDayReservationPrice
@@ -186,12 +186,12 @@ create procedure [calculateTriggersTest].[testcalCulateReservationPriceShouldSUC
 end 
 go
 
---exec tSQLt.Run '[calculateTriggersTest].[testDaySlotsFilledShouldSUCCESS]' go
-if object_id('[calculateTriggersTest].[testDaySlotsFilledShouldSUCCESS]') is not null 
-drop procedure [calculateTriggersTest].[testSlotsFilledShouldSUCCESS]
+--exec tSQLt.Run '[calculateTriggersTest].[testDaySlotsFilledShouldSUCCEED]'
+if object_id('[calculateTriggersTest].[testDaySlotsFilledShouldSUCCEED]') is not null 
+drop procedure [calculateTriggersTest].[testSlotsFilledShouldSUCCEED]
 go
 
-create procedure [calculateTriggersTest].[testDaySlotsFilledShouldSUCCESS] as begin
+create procedure [calculateTriggersTest].[testDaySlotsFilledShouldSUCCEED] as begin
 	declare @ActualNumOfDaySlotsFilled int = (
 		select SlotsFilled from Day where DayID = dbo.getConferenceDayId('Conference1', '2015-10-01')
 	)
@@ -200,13 +200,13 @@ create procedure [calculateTriggersTest].[testDaySlotsFilledShouldSUCCESS] as be
 end 
 go
 
-if object_id('[calculateTriggersTest].[testWorkshopSlotsFilledShouldSUCCESS]') is not null 
-drop procedure [calculateTriggersTest].[testSlotsFilledShouldSUCCESS]
+if object_id('[calculateTriggersTest].[testWorkshopSlotsFilledShouldSUCCEED]') is not null 
+drop procedure [calculateTriggersTest].[testWorkshopSlotsFilledShouldSUCCEED]
 go
 
---exec tSQLt.Run '[calculateTriggersTest].[testWorkshopSlotsFilledShouldSUCCESS]' go
+--exec tSQLt.Run '[calculateTriggersTest].[testWorkshopSlotsFilledShouldSUCCEED]'
 
-create procedure [calculateTriggersTest].testWorkshopSlotsFilledShouldSUCCESS as begin
+create procedure [calculateTriggersTest].testWorkshopSlotsFilledShouldSUCCEED as begin
 	declare @ActualNumOfWorkshopSlotsFilled int = (
 		select SlotsFilled 
 		from WorkshopInstance WI
@@ -219,14 +219,15 @@ create procedure [calculateTriggersTest].testWorkshopSlotsFilledShouldSUCCESS as
 end 
 go
 
---exec tSQLt.Run '[calculateTriggersTest].[testDaySlotsFilledAfterReservatinonCancelShouldSUCCESS]' go
-if object_id('[calculateTriggersTest].[testDaySlotsFilledAfterReservatinonCancelShouldSUCCESS]') is not null 
-drop procedure [calculateTriggersTest].[testDaySlotsFilledAfterReservatinonCancelShouldSUCCESS]
+--exec tSQLt.Run '[calculateTriggersTest].[testDaySlotsFilledAfterReservatinonCancelShouldSUCCEED]' 
+
+if object_id('[calculateTriggersTest].[testDaySlotsFilledAfterReservatinonCancelShouldSUCCEED]') is not null 
+drop procedure [calculateTriggersTest].[testDaySlotsFilledAfterReservatinonCancelShouldSUCCEED]
 go
 
-create procedure [calculateTriggersTest].testDaySlotsFilledAfterReservatinonCancelShouldSUCCESS as begin
+create procedure [calculateTriggersTest].testDaySlotsFilledAfterReservatinonCancelShouldSUCCEED as begin
 	
-	declare @testReservationId int = dbo.getClientReservation('cmp2')
+	declare @testReservationId int = [calculateTriggersTest].[getClientReservation]('cmp2')
 
 	exec cancelReservationForClient
 		@ReservationId= @testReservationId
@@ -239,14 +240,14 @@ create procedure [calculateTriggersTest].testDaySlotsFilledAfterReservatinonCanc
 end 
 go
 
---exec tSQLt.Run '[calculateTriggersTest].[testWorkshopSlotsFilledAfterReservatinonCancelShouldSUCCESS]' go
-if object_id('[calculateTriggersTest].[testWorkshopSlotsFilledAfterReservatinonCancelShouldSUCCESS]') is not null 
-drop procedure [calculateTriggersTest].[testWorkshopSlotsFilledAfterReservatinonCancelShouldSUCCESS]
+--exec tSQLt.Run '[calculateTriggersTest].[testWorkshopSlotsFilledAfterReservatinonCancelShouldSUCCEED]' go
+if object_id('[calculateTriggersTest].[testWorkshopSlotsFilledAfterReservatinonCancelShouldSUCCEED]') is not null 
+drop procedure [calculateTriggersTest].[testWorkshopSlotsFilledAfterReservatinonCancelShouldSUCCEED]
 go
 
-create procedure [calculateTriggersTest].[testWorkshopSlotsFilledAfterReservatinonCancelShouldSUCCESS] as begin
+create procedure [calculateTriggersTest].[testWorkshopSlotsFilledAfterReservatinonCancelShouldSUCCEED] as begin
 	
-	declare @testReservationId int = dbo.getClientReservation('cmp1')
+	declare @testReservationId int = [calculateTriggersTest].[getClientReservation]('cmp1')
 	
 	exec cancelReservationForClient
 		@ReservationId = @testReservationId
@@ -263,15 +264,14 @@ create procedure [calculateTriggersTest].[testWorkshopSlotsFilledAfterReservatin
 end 
 go
 
---exec tSQLt.Run '[calculateTriggersTest].[testWorkshopSlotsFilledAfterDayReservatinonCancelShouldSUCCESS]'go
-if object_id('[calculateTriggersTest].[testWorkshopSlotsFilledAfterDayReservatinonCancelShouldSUCCESS]') is not null 
-drop procedure [calculateTriggersTest].[testWorkshopSlotsFilledAfterDayReservatinonCancelShouldSUCCESS]
+--exec tSQLt.Run '[calculateTriggersTest].[testWorkshopSlotsFilledAfterDayReservatinonCancelShouldSUCCEED]'
+if object_id('[calculateTriggersTest].[testWorkshopSlotsFilledAfterDayReservatinonCancelShouldSUCCEED]') is not null 
+drop procedure [calculateTriggersTest].[testWorkshopSlotsFilledAfterDayReservatinonCancelShouldSUCCEED]
 go
 
---exec tSQLt.Run '[calculateTriggersTest].[testWorkshopSlotsFilledAfterWorkshopReservatinonCancelShouldSUCCESS]' go
-create procedure [calculateTriggersTest].testWorkshopSlotsFilledAfterDayReservatinonCancelShouldSUCCESS as begin
+create procedure [calculateTriggersTest].testWorkshopSlotsFilledAfterDayReservatinonCancelShouldSUCCEED as begin
 
-	declare @testReservationId int = dbo.getClientReservation('cmp2')
+	declare @testReservationId int = [calculateTriggersTest].[getClientReservation]('cmp2')
 
 	exec cancelDayReservation
 		@ReservationId = @testReservationId,
@@ -284,13 +284,13 @@ create procedure [calculateTriggersTest].testWorkshopSlotsFilledAfterDayReservat
 end 
 go
 
-if object_id('[calculateTriggersTest].[testWorkshopSlotsFilledAfterWorkshopReservatinonCancelShouldSUCCESS]') is not null 
-drop procedure [calculateTriggersTest].[testWorkshopSlotsFilledAfterWorkshopReservatinonCancelShouldSUCCESS]
+if object_id('[calculateTriggersTest].[testWorkshopSlotsFilledAfterWorkshopReservatinonCancelShouldSUCCEED]') is not null 
+drop procedure [calculateTriggersTest].[testWorkshopSlotsFilledAfterWorkshopReservatinonCancelShouldSUCCEED]
 go
 
-create procedure [calculateTriggersTest].[testWorkshopSlotsFilledAfterWorkshopReservatinonCancelShouldSUCCESS] as begin
+create procedure [calculateTriggersTest].[testWorkshopSlotsFilledAfterWorkshopReservatinonCancelShouldSUCCEED] as begin
 
-	declare @testReservationId int = dbo.getClientReservation('cmp1')
+	declare @testReservationId int = [calculateTriggersTest].[getClientReservation]('cmp1')
 
 	exec cancelWorkshopReservation
 		@reservationId = @testReservationId,
@@ -309,14 +309,14 @@ create procedure [calculateTriggersTest].[testWorkshopSlotsFilledAfterWorkshopRe
 end 
 go
 
---exec tSQLt.Run '[calculateTriggersTest].[testReservationPriceAfterDayReservationChangeShouldSUCCESS]' go
-if object_id('[calculateTriggersTest].[testReservationPriceAfterDayReservationChangeShouldSUCCESS]') is not null 
-drop procedure [calculateTriggersTest].[testReservationPriceAfterDayReservationChangeShouldSUCCESS]
+--exec tSQLt.Run '[calculateTriggersTest].[testReservationPriceAfterDayReservationChangeShouldSUCCEED]'
+if object_id('[calculateTriggersTest].[testReservationPriceAfterDayReservationChangeShouldSUCCEED]') is not null 
+drop procedure [calculateTriggersTest].[testReservationPriceAfterDayReservationChangeShouldSUCCEED]
 go
 
-create procedure [calculateTriggersTest].[testReservationPriceAfterDayReservationChangeShouldSUCCESS] as begin
+create procedure [calculateTriggersTest].[testReservationPriceAfterDayReservationChangeShouldSUCCEED] as begin
 
-	declare @testDayReservationId int = dbo.getClientReservation('cmp2')
+	declare @testDayReservationId int = [calculateTriggersTest].[getClientReservation]('cmp2')
 
 	exec changeDayReservationNumbers
 		@reservationId = @testDayReservationId,
@@ -331,14 +331,14 @@ create procedure [calculateTriggersTest].[testReservationPriceAfterDayReservatio
 end 
 go
 
---exec tSQLt.Run '[calculateTriggersTest].[testReservationPriceAfterWorkshopReservationChangeShouldSUCCESS]' go
-if object_id('[calculateTriggersTest].[testReservationPriceAfterWorkshopReservationChangeShouldSUCCESS]') is not null 
-drop procedure [calculateTriggersTest].[testReservationPriceAfterWorkshopReservationChangeShouldSUCCESS]
+--exec tSQLt.Run '[calculateTriggersTest].[testReservationPriceAfterWorkshopReservationChangeShouldSUCCEED]'
+if object_id('[calculateTriggersTest].[testReservationPriceAfterWorkshopReservationChangeShouldSUCCEED]') is not null 
+drop procedure [calculateTriggersTest].[testReservationPriceAfterWorkshopReservationChangeShouldSUCCEED]
 go
 
-create procedure [calculateTriggersTest].[testReservationPriceAfterWorkshopReservationChangeShouldSUCCESS] as begin
+create procedure [calculateTriggersTest].[testReservationPriceAfterWorkshopReservationChangeShouldSUCCEED] as begin
 
-	declare @testReservationId int = dbo.getClientReservation('cmp1')
+	declare @testReservationId int = [calculateTriggersTest].[getClientReservation]('cmp1')
 
 	exec changeWorkshopReservationNumbers
 		@reservationId = @testReservationId,
@@ -356,14 +356,14 @@ create procedure [calculateTriggersTest].[testReservationPriceAfterWorkshopReser
 end 
 go
 
---exec tSQLt.Run '[calculateTriggersTest].[testPastReservationCountAfterReservationCancelShouldSUCCESS]' go
-if object_id('[calculateTriggersTest].[testPastReservationCountAfterReservationCancelShouldSUCCESS]') is not null 
-drop procedure [calculateTriggersTest].[testPastReservationCountAfterReservationCancelShouldSUCCESS]
+--exec tSQLt.Run '[calculateTriggersTest].[testPastReservationCountAfterReservationCancelShouldSUCCEED]'
+if object_id('[calculateTriggersTest].[testPastReservationCountAfterReservationCancelShouldSUCCEED]') is not null 
+drop procedure [calculateTriggersTest].[testPastReservationCountAfterReservationCancelShouldSUCCEED]
 go
 
-create procedure [calculateTriggersTest].testPastReservationCountAfterReservationCancelShouldSUCCESS as begin
+create procedure [calculateTriggersTest].testPastReservationCountAfterReservationCancelShouldSUCCEED as begin
 
-	declare @testDayReservationId int = dbo.getClientReservation('cmp2')
+	declare @testDayReservationId int = [calculateTriggersTest].[getClientReservation]('cmp2')
 
 	exec cancelReservationForClient
 		@ReservationID = @testDayReservationId
@@ -373,14 +373,14 @@ create procedure [calculateTriggersTest].testPastReservationCountAfterReservatio
 	exec tSQLt.AssertEquals 0, @PastReservationCount
 end
 
---exec tSQLt.Run '[calculateTriggersTest].[testTotalMoneySpentAfterReservationCancelShouldSUCCESS]' go
-if object_id('[calculateTriggersTest].[testTotalMoneySpentAfterReservationCancelShouldSUCCESS]') is not null 
-drop procedure [calculateTriggersTest].[testTotalMoneySpentAfterReservationCancelShouldSUCCESS]
+--exec tSQLt.Run '[calculateTriggersTest].[testTotalMoneySpentAfterReservationCancelShouldSUCCEED]'
+if object_id('[calculateTriggersTest].[testTotalMoneySpentAfterReservationCancelShouldSUCCEED]') is not null 
+drop procedure [calculateTriggersTest].[testTotalMoneySpentAfterReservationCancelShouldSUCCEED]
 go
 
-create procedure [calculateTriggersTest].[testTotalMoneySpentAfterReservationCancelShouldSUCCESS] as begin
+create procedure [calculateTriggersTest].[testTotalMoneySpentAfterReservationCancelShouldSUCCEED] as begin
 
-	declare @testReservationId int = dbo.getClientReservation('cmp2')
+	declare @testReservationId int = [calculateTriggersTest].[getClientReservation]('cmp2')
 
 	exec changeDayReservationNumbers
 		@reservationId = @testReservationId,
@@ -401,24 +401,12 @@ create procedure [calculateTriggersTest].[testTotalMoneySpentAfterReservationCan
 	exec tSQLt.AssertEquals 0, @TotalMoneySpent
 end
 
-
-
-
-
-
-
-
-
-
-
-
-
---exec tSQLt.Run '[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountShouldSUCCESS]' go
-if object_id('[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountShouldSUCCESS]') is not null 
-drop procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountShouldSUCCESS]
+--exec tSQLt.Run '[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountShouldSUCCEED]'
+if object_id('[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountShouldSUCCEED]') is not null 
+drop procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountShouldSUCCEED]
 go
 
-create procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountShouldSUCCESS] as begin
+create procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountShouldSUCCEED] as begin
 	declare @testReservationId int;
 
 	exec addNewReservation
@@ -445,12 +433,12 @@ create procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDisco
 end
 
 
---exec tSQLt.Run '[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountStudentsCheckShouldSUCCESS]' go
-if object_id('[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountStudentsCheckShouldSUCCESS]') is not null 
-drop procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountStudentsCheckShouldSUCCESS]
+--exec tSQLt.Run '[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountStudentsCheckShouldSUCCEED]'
+if object_id('[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountStudentsCheckShouldSUCCEED]') is not null 
+drop procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountStudentsCheckShouldSUCCEED]
 go
 
-create procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountStudentsCheckShouldSUCCESS] as begin
+create procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountStudentsCheckShouldSUCCEED] as begin
 	declare @testReservationId int;
 
 	exec addNewReservation
@@ -476,12 +464,12 @@ create procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDisco
 end
 
 
---exec tSQLt.Run '[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountSumGreaterThanOneShouldSUCCESS]' go
-if object_id('[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountSumGreaterThanOneShouldSUCCESS]') is not null 
-drop procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountSumGreaterThanOneShouldSUCCESS]
+--exec tSQLt.Run '[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountSumGreaterThanOneShouldSUCCEED]'
+if object_id('[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountSumGreaterThanOneShouldSUCCEED]') is not null 
+drop procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountSumGreaterThanOneShouldSUCCEED]
 go
 
-create procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountSumGreaterThanOneShouldSUCCESS] as begin
+create procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountSumGreaterThanOneShouldSUCCEED] as begin
 	declare @testReservationId int;
 
 	exec addNewReservation
@@ -506,12 +494,12 @@ create procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDisco
 	exec tSQLt.AssertEquals 15, @ActualReservationPrice
 end
 
---exec tSQLt.Run '[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountEqualOneThanOneShouldSUCCESS]' go
-if object_id('[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountEqualOneThanOneShouldSUCCESS]') is not null 
-drop procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountEqualOneThanOneShouldSUCCESS]
+--exec tSQLt.Run '[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountEqualOneThanOneShouldSUCCEED]'
+if object_id('[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountEqualOneThanOneShouldSUCCEED]') is not null 
+drop procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountEqualOneThanOneShouldSUCCEED]
 go
 
-create procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountEqualOneThanOneShouldSUCCESS] as begin
+create procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountEqualOneThanOneShouldSUCCEED] as begin
 	declare @testReservationId int;
 
 	exec addNewReservation
