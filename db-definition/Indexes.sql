@@ -1,3 +1,6 @@
+use pachuta_a
+go
+
 if exists (select * from sys.indexes where name = 'IX_Reservation_ClientID') drop index IX_Reservation_ClientID on Reservation
 go
 if exists (select * from sys.indexes where name = 'IX_DayReservation_DayID') drop index IX_DayReservation_DayID on DayReservation
