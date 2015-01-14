@@ -24,6 +24,7 @@ go
 if object_id('[calculateTriggersTest].[setup]') is not null drop procedure [CompanyReservationTest].[setup]
 go
 create procedure [calculateTriggersTest].[setup] as begin
+
 	exec dbo.addConference 
 		@Name = 'Conference1',
 		@Venue = 'Venue1',
@@ -37,6 +38,11 @@ create procedure [calculateTriggersTest].[setup] as begin
 	exec dbo.addConferenceDay
 		@ConferenceName = 'Conference1',
 		@Date = '2015-10-01',
+		@Capacity = 30
+
+	exec dbo.addConferenceDay
+		@ConferenceName = 'Conference1',
+		@Date = '2015-10-02',
 		@Capacity = 30
 		
 	exec dbo.addClientCompany
@@ -62,6 +68,19 @@ create procedure [calculateTriggersTest].[setup] as begin
 		@Mail = 'cmp2@gmail.com',
 		@Phone = '123 456 987',
 		@BankAccount = '76 7977 2051 9315 7762 4007 8850'
+
+
+	exec dbo.addClientCompany
+		@CompanyName = 'Company3',
+		@Street = 'Street4',
+		@PostalCode = '23-123',
+		@City = 'Gotham City',
+		@Country = 'Poland',
+		@Login = 'cmp3',
+		@Password = '123456',
+		@Mail = 'cmp3@gmail.com',
+		@Phone = '123 456 999',
+		@BankAccount = '76 7999 2051 9315 7762 4007 8850'
 
 	declare @testReservationId int;
 
@@ -108,7 +127,6 @@ create procedure [calculateTriggersTest].[setup] as begin
 		@Date = '2015-10-01',
 		@NumberOfParticipants = 10,
 		@NumberOfStudentDiscounts = 2
-
 end
 go
 
@@ -381,4 +399,139 @@ create procedure [calculateTriggersTest].[testTotalMoneySpentAfterReservationCan
 	declare @TotalMoneySpent int = (select TotalMoneySpent from Client where Login = 'cmp2')
 
 	exec tSQLt.AssertEquals 0, @TotalMoneySpent
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+--exec tSQLt.Run '[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountShouldSUCCESS]' go
+if object_id('[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountShouldSUCCESS]') is not null 
+drop procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountShouldSUCCESS]
+go
+
+create procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountShouldSUCCESS] as begin
+	declare @testReservationId int;
+
+	exec addNewReservation
+		@Login = 'cmp3',
+		@ReservationTime = '2015-09-02',
+		@ReservationId = @testReservationId output
+
+	exec addEarlyBirdDiscount
+		@ConferenceName = 'Conference1',
+		@StartTime = '2015-09-01 23:59:59.99',
+		@EndTime = '2015-09-10 23:59:59.99',
+		@Discount = 0.9
+
+
+	exec dbo.addDayReservationForCompany
+		@ReservationId = @testReservationId,
+		@ConferenceName = 'Conference1',
+		@Date = '2015-10-02',
+		@NumberOfParticipants = 10,
+		@NumberOfStudentDiscounts = 0
+
+	declare @ActualReservationPrice int = (select Price from Reservation where ReservationId=@testReservationId)
+	exec tSQLt.AssertEquals 100, @ActualReservationPrice
+end
+
+
+--exec tSQLt.Run '[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountStudentsCheckShouldSUCCESS]' go
+if object_id('[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountStudentsCheckShouldSUCCESS]') is not null 
+drop procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountStudentsCheckShouldSUCCESS]
+go
+
+create procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountStudentsCheckShouldSUCCESS] as begin
+	declare @testReservationId int;
+
+	exec addNewReservation
+		@Login = 'cmp3',
+		@ReservationTime = '2015-09-02',
+		@ReservationId = @testReservationId output
+
+	exec addEarlyBirdDiscount
+		@ConferenceName = 'Conference1',
+		@StartTime = '2015-09-01 23:59:59.99',
+		@EndTime = '2015-09-10 23:59:59.99',
+		@Discount = 0.2
+
+	exec dbo.addDayReservationForCompany
+		@ReservationId = @testReservationId,
+		@ConferenceName = 'Conference1',
+		@Date = '2015-10-02',
+		@NumberOfParticipants = 2,
+		@NumberOfStudentDiscounts = 1
+
+	declare @ActualReservationPrice int = (select Price from Reservation where ReservationId=@testReservationId)
+	exec tSQLt.AssertEquals 120, @ActualReservationPrice
+end
+
+
+--exec tSQLt.Run '[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountSumGreaterThanOneShouldSUCCESS]' go
+if object_id('[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountSumGreaterThanOneShouldSUCCESS]') is not null 
+drop procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountSumGreaterThanOneShouldSUCCESS]
+go
+
+create procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountSumGreaterThanOneShouldSUCCESS] as begin
+	declare @testReservationId int;
+
+	exec addNewReservation
+		@Login = 'cmp3',
+		@ReservationTime = '2015-09-02',
+		@ReservationId = @testReservationId output
+
+	exec addEarlyBirdDiscount
+		@ConferenceName = 'Conference1',
+		@StartTime = '2015-09-01 23:59:59.99',
+		@EndTime = '2015-09-10 23:59:59.99',
+		@Discount = 0.9
+
+	exec dbo.addDayReservationForCompany
+		@ReservationId = @testReservationId,
+		@ConferenceName = 'Conference1',
+		@Date = '2015-10-02',
+		@NumberOfParticipants = 2,
+		@NumberOfStudentDiscounts = 1
+
+	declare @ActualReservationPrice int = (select Price from Reservation where ReservationId=@testReservationId)
+	exec tSQLt.AssertEquals 15, @ActualReservationPrice
+end
+
+--exec tSQLt.Run '[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountEqualOneThanOneShouldSUCCESS]' go
+if object_id('[calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountEqualOneThanOneShouldSUCCESS]') is not null 
+drop procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountEqualOneThanOneShouldSUCCESS]
+go
+
+create procedure [calculateTriggersTest].[testReservationPriceWithEarlyBirdDiscountEqualOneThanOneShouldSUCCESS] as begin
+	declare @testReservationId int;
+
+	exec addNewReservation
+		@Login = 'cmp3',
+		@ReservationTime = '2015-09-02',
+		@ReservationId = @testReservationId output
+
+	exec addEarlyBirdDiscount
+		@ConferenceName = 'Conference1',
+		@StartTime = '2015-09-01 23:59:59.99',
+		@EndTime = '2015-09-10 23:59:59.99',
+		@Discount = 1.0
+
+	exec dbo.addDayReservationForCompany
+		@ReservationId = @testReservationId,
+		@ConferenceName = 'Conference1',
+		@Date = '2015-10-02',
+		@NumberOfParticipants = 2,
+		@NumberOfStudentDiscounts = 1
+
+	declare @ActualReservationPrice int = (select Price from Reservation where ReservationId=@testReservationId)
+	exec tSQLt.AssertEquals 0, @ActualReservationPrice
 end
