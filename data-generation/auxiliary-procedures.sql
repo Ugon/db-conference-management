@@ -80,3 +80,10 @@ as begin
 		@Price
 end
 go
+
+if object_id('cancelReservation') is not null drop procedure cancelReservation;
+go
+create procedure cancelReservation
+	@ReservationID int
+as update Reservation set Cancelled = 1 where ReservationID = @ReservationID
+go
