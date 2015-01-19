@@ -642,3 +642,35 @@ create function invoiceForReservation(@ReservationID int) returns table as retur
 	where r.ReservationID = @ReservationID
 
 go
+
+if object_id('ReservationAllDayDetails') is not null drop function ReservationAllDayDetails
+go
+create function ReservationAllDayDetails(@ReservationID int) returns table as return 
+
+	select cf.Name as ConferenceName, d.Date, p.FirstName, p.LastName from Reservation as r
+	inner join DayReservation as dr on dr.ReservationID = r.ReservationID
+	inner join DayReservationDetails as drd on drd.DayReservationID = dr.DayReservationID
+	inner join Person as p on p.PersonID = drd.PersonID
+	inner join Day as d on d.DayID = dr.DayID
+	inner join conference as cf on d.ConferenceID = cf.ConferenceID
+	where r.ReservationID = @ReservationID
+
+go
+
+if object_id('ReservationAllWorkshopDetails') is not null drop function ReservationAllWorkshopDetails
+go
+create function ReservationAllWorkshopDetails(@ReservationID int) returns table as return 
+
+	select cf.Name as ConferenceName, d.Date, wt.Name as WorkshopName, wi.StartTime, p.FirstName, p.LastName from Reservation as r
+	inner join DayReservation as dr on dr.ReservationID = r.ReservationID
+	inner join WorkshopReservation as wr on wr.DayReservationID = dr.DayReservationID
+	inner join WorkshopReservationDetails as wrd on wrd.WorkshopReservationID = wr.WorkshopReservationID
+	inner join DayReservationDetails as drd on wrd.DayReservationDetailsID = drd.DayReservationDetailsID
+	inner join Person as p on p.PersonID = drd.PersonID
+	inner join Day as d on d.DayID = dr.DayID
+	inner join conference as cf on d.ConferenceID = cf.ConferenceID
+	inner join WorkshopInstance as wi on wr.WorkshopInstanceID = wi.WorkshopInstanceID
+	inner join WorkshopType as wt on wt.WorkshopTypeID = wi.WorkshopTypeID
+	where r.ReservationID = @ReservationID
+
+go
